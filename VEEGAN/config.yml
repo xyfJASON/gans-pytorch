@@ -1,0 +1,22 @@
+use_gpu: true
+exp_name: ~
+
+dataset: mnist  # ring8 / grid25 / mnist
+dataroot: ../../data
+z_dim: 100
+
+epochs: 200
+batch_size: 256
+
+ndfs: [256, 256]
+ngfs: [256, 256, 256]
+nrfs: [256, 256, 256]
+
+optimizer:
+  choice: adam
+  adam:
+    lr: 0.001
+    betas: [0.5, 0.999]
+
+d_iters: 1
+sample_per_epochs: 2

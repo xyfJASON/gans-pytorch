@@ -1,5 +1,5 @@
 use_gpu: true
-exp_name: grid25
+exp_name: ~
 
 dataset: grid25  # ring8 / grid25 / mnist
 dataroot: ../../data

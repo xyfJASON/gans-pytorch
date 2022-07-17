@@ -1,0 +1,19 @@
+use_gpu: true
+
+dataset: mnist  # ring8 / grid25 / mnist
+dataroot: ../data
+z_dim: 100
+img_size: 28
+
+epochs: 300
+batch_size: 256
+
+optimizer:
+  choice: rmsprop
+  rmsprop:
+    lr: 0.00005
+
+clip: [-0.01, 0.01]
+
+d_iters: 5
+sample_per_epochs: 3

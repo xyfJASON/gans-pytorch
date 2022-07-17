@@ -1,0 +1,24 @@
+use_gpu: true
+
+dataset: mnist  # mnist / fashion_mnist / celeba
+dataroot: ../data
+z_dim: 100
+img_size: 64
+
+epochs: 50
+batch_size: 128
+
+optimizerG:
+  choice: adam
+  adam:
+    lr: 0.0001
+    betas: [0, 0.9]
+
+optimizerD:
+  choice: adam
+  adam:
+    lr: 0.0004
+    betas: [0, 0.9]
+
+d_iters: 1
+sample_per_epochs: 1

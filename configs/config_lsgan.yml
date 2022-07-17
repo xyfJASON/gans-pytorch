@@ -1,0 +1,23 @@
+use_gpu: true
+
+dataset: celeba  # ring8 / grid25 / mnist / fashion_mnist / celeba
+dataroot: ../data
+
+model_arch: CNN  # MLP / CNN
+z_dim: 100
+img_size: 64
+
+epochs: 50
+batch_size: 256
+
+a: 0
+b: 1
+c: 1
+
+optimizer:
+  choice: adam
+  adam:
+    lr: 0.0002
+
+d_iters: 1
+sample_per_epochs: 1

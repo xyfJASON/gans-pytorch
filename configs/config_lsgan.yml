@@ -1,12 +1,13 @@
-use_gpu: true
-
+# DATA
 dataset: celeba  # ring8 / grid25 / mnist / fashion_mnist / celeba
-dataroot: ../data
-
-model_arch: CNN  # MLP / CNN
-z_dim: 100
+dataroot: /home/jason/data
 img_size: 64
 
+# MODEL
+model_arch: CNN  # MLP / CNN
+z_dim: 100
+
+# TRAIN
 epochs: 50
 batch_size: 256
 
@@ -20,4 +21,4 @@ optimizer:
     lr: 0.0002
 
 d_iters: 1
-sample_per_epochs: 1
+sample_freq: 1

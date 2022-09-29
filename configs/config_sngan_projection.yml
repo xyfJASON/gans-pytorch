@@ -1,10 +1,12 @@
-use_gpu: true
-
+# DATA
 dataset: mnist  # mnist / fashion_mnist
-dataroot: ../data
-z_dim: 100
+dataroot: /home/jason/data
 img_size: 64
 
+# MODEL
+z_dim: 100
+
+# TRAIN
 epochs: 50
 batch_size: 512
 
@@ -15,4 +17,4 @@ optimizer:
     betas: [0, 0.9]
 
 d_iters: 1
-sample_per_epochs: 1
+sample_freq: 1

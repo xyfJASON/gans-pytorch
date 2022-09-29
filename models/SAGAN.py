@@ -1,10 +1,7 @@
 import torch
 import torch.nn as nn
-import torch.optim as optim
 import torch.nn.functional as F
 from torch.nn.utils.parametrizations import spectral_norm
-
-from train import BaseTrainer
 
 
 def weights_init(m):
@@ -39,7 +36,7 @@ class SelfAttentionBlock(nn.Module):
 
 
 class Generator(nn.Module):
-    def __init__(self, z_dim: int, img_channels: int, return_attmap: bool = True):
+    def __init__(self, z_dim: int, img_channels: int, return_attmap: bool = False):
         super().__init__()
         self.return_attmap = return_attmap
 
@@ -125,55 +122,8 @@ class Discriminator(nn.Module):
         return X
 
 
-class SAGAN_Trainer(BaseTrainer):
-    def __init__(self, config_path):
-        super().__init__(config_path)
-
-    def define_models(self):
-        self.G = Generator(self.config['z_dim'], self.img_channels, return_attmap=False)
-        self.D = Discriminator(self.img_channels)
-        self.G.to(device=self.device)
-        self.D.to(device=self.device)
-
-    def define_optimizers(self):
-        self.optimizerG = optim.Adam(self.G.parameters(), lr=self.config['optimizerG']['adam']['lr'], betas=self.config['optimizerG']['adam']['betas'])
-        self.optimizerD = optim.Adam(self.D.parameters(), lr=self.config['optimizerD']['adam']['lr'], betas=self.config['optimizerD']['adam']['betas'])
-
-    def define_losses(self):
-        pass
-
-    def train_batch(self, ep, it, X, y=None):
-        X = X.to(device=self.device, dtype=torch.float32)
-
-        # --------- train discriminator --------- #
-        # min E[max(0, 1 - D(X))] + E[max(0, 1 + D(G(z)))]
-        z = torch.randn((X.shape[0], self.config['z_dim']), device=self.device)
-        fake = self.G(z).detach()
-        d_real, d_fake = self.D(X), self.D(fake)
-        lossD = torch.mean(F.relu(1 - d_real) + F.relu(1 + d_fake))
-        self.optimizerD.zero_grad()
-        lossD.backward()
-        self.optimizerD.step()
-        self.writer.add_scalar('D/loss', lossD.item(), it + ep * len(self.dataloader))
-        self.writer.add_scalar('D/gamma1', self.D.attn1.gamma.item(), it + ep * len(self.dataloader))
-        self.writer.add_scalar('D/gamma2', self.D.attn2.gamma.item(), it + ep * len(self.dataloader))
-
-        # --------- train generator --------- #
-        # min -D(G(z))
-        if (it + 1) % self.config['d_iters'] == 0:
-            z = torch.randn((X.shape[0], self.config['z_dim']), device=self.device)
-            fake = self.G(z)
-            lossG = -torch.mean(self.D(fake))
-            self.optimizerG.zero_grad()
-            lossG.backward()
-            self.optimizerG.step()
-            self.writer.add_scalar('G/loss', lossG.item(), it + ep * len(self.dataloader))
-            self.writer.add_scalar('G/gamma1', self.G.attn1.gamma.item(), it + ep * len(self.dataloader))
-            self.writer.add_scalar('G/gamma2', self.G.attn2.gamma.item(), it + ep * len(self.dataloader))
-
-
 def _test():
-    G = Generator(z_dim=100, img_channels=3)
+    G = Generator(z_dim=100, img_channels=3, return_attmap=True)
     D = Discriminator(img_channels=3)
     z = torch.randn(10, 100, 1, 1)
     fakeX, attmap1, attmap2 = G(z)

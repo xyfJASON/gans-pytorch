@@ -1,8 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.optim as optim
-
-from train import BaseTrainer
 
 
 def weights_init(m):
@@ -63,54 +60,6 @@ class Discriminator(nn.Module):
 
     def forward(self, X: torch.Tensor):
         return self.disc(X).squeeze()
-
-
-class DCGAN_Trainer(BaseTrainer):
-    def __init__(self, config_path):
-        super().__init__(config_path)
-
-    def define_models(self):
-        self.G = Generator(self.config['z_dim'], self.img_channels)
-        self.D = Discriminator(self.img_channels)
-        self.G.to(device=self.device)
-        self.D.to(device=self.device)
-
-    def define_optimizers(self):
-        self.optimizerG = optim.Adam(self.G.parameters(), lr=self.config['optimizer']['adam']['lr'], betas=self.config['optimizer']['adam']['betas'])
-        self.optimizerD = optim.Adam(self.D.parameters(), lr=self.config['optimizer']['adam']['lr'], betas=self.config['optimizer']['adam']['betas'])
-
-    def define_losses(self):
-        setattr(self, 'BCE', nn.BCELoss())
-
-    def train_batch(self, ep, it, X, y=None):
-        assert X.shape[-2:] == (64, 64), f'DCGAN only supports 64x64 input.'
-
-        X = X.to(device=self.device, dtype=torch.float32)
-        BCE = getattr(self, 'BCE')
-
-        # --------- train discriminator --------- #
-        # min -[log(D(x)) + log(1-D(G(z)))]
-        z = torch.randn((X.shape[0], self.config['z_dim']), device=self.device)
-        fake = self.G(z).detach()
-        realscore, fakescore = self.D(X), self.D(fake)
-        lossD = (BCE(realscore, torch.ones_like(realscore)) +
-                 BCE(fakescore, torch.zeros_like(fakescore))) / 2
-        self.optimizerD.zero_grad()
-        lossD.backward()
-        self.optimizerD.step()
-        self.writer.add_scalar('D/loss', lossD.item(), it + ep * len(self.dataloader))
-
-        # --------- train generator --------- #
-        # max -log(1-D(G(z))) => min -log(D(G(z)))
-        if (it + 1) % self.config['d_iters'] == 0:
-            z = torch.randn((X.shape[0], self.config['z_dim']), device=self.device)
-            fake = self.G(z)
-            fakescore = self.D(fake)
-            lossG = BCE(fakescore, torch.ones_like(fakescore))
-            self.optimizerG.zero_grad()
-            lossG.backward()
-            self.optimizerG.step()
-            self.writer.add_scalar('G/loss', lossG.item(), it + ep * len(self.dataloader))
 
 
 def _test():

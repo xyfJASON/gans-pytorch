@@ -12,33 +12,44 @@ def generate(args):
     ckpt = torch.load(args.model_path, map_location='cpu')
     if args.model == 'gan':
         G = models.GAN.Generator(args.z_dim, args.data_dim)
+        conditional = False
     elif args.model == 'dcgan':
         G = models.DCGAN.Generator(args.z_dim, args.img_channels)
+        conditional = False
     elif args.model == 'cgan':
         G = models.CGAN.Generator(args.z_dim, args.data_dim, args.n_classes)
+        conditional = True
     elif args.model == 'acgan':
         G = models.ACGAN.Generator(args.z_dim, args.img_channels, args.n_classes)
+        conditional = True
     elif args.model == 'wgan':
         G = models.WGAN.Generator(args.z_dim, args.data_dim)
+        conditional = False
     elif args.model == 'wgan-gp':
         G = models.WGAN_GP.Generator(args.z_dim, args.data_dim)
+        conditional = False
     elif args.model == 'sngan':
         G = models.SNGAN.Generator(args.z_dim, args.img_channels)
+        conditional = False
     elif args.model == 'sngan-projection':
         G = models.SNGAN_projection.Generator(args.z_dim, args.n_classes, args.img_channels)
+        conditional = True
     elif args.model == 'lsgan':
         G = models.LSGAN.GeneratorCNN(args.z_dim, args.img_channels)
+        conditional = False
     elif args.model == 'sagan':
         G = models.SAGAN.Generator(args.z_dim, args.img_channels)
+        conditional = False
     elif args.model == 'veegan':
         G = models.VEEGAN.Generator(args.z_dim, args.data_dim, ngfs=[256, 256, 256])
+        conditional = False
     else:
         raise ValueError(f'{args.model} is not supported now.')
     G.load_state_dict(ckpt['G'])
     G.to(device=device)
 
     if args.mode == 'random':
-        if not args.conditional:
+        if not conditional:
             sample_z = torch.randn((64, args.z_dim), device=device)
             X = G(sample_z).cpu()
             X = X.view(-1, args.img_channels, args.img_size, args.img_size)
@@ -51,7 +62,7 @@ def generate(args):
             X = X.view(-1, args.img_channels, args.img_size, args.img_size)
             save_image(X, args.save_path, nrow=args.n_classes, normalize=True, value_range=(-1, 1))
     elif args.mode == 'walk':
-        if not args.conditional:
+        if not conditional:
             sample_z1 = torch.randn((5, args.z_dim), device=device)
             sample_z2 = torch.randn((5, args.z_dim), device=device)
             result = []
@@ -97,7 +108,6 @@ def main():
     parser.add_argument('--data_dim', type=int, help='dimensionality of output data, for mlp-like generators')
     parser.add_argument('--img_size', type=int, help='size of output images, for cnn-like generators')
     parser.add_argument('--img_channels', type=int, help='number of channels of output images, for cnn-like generators')
-    parser.add_argument('--conditional', action='store_true', help='whether the generator is conditional or not')
     args = parser.parse_args()
 
     generate(args)

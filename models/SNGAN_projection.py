@@ -1,10 +1,6 @@
 import torch
 import torch.nn as nn
-import torch.optim as optim
-import torch.nn.functional as F
 from torch.nn.utils.parametrizations import spectral_norm
-
-from train import BaseTrainer
 
 
 def weights_init(m):
@@ -77,52 +73,6 @@ class Discriminator(nn.Module):
         f1 = torch.sum(C * self.classifier(phiX), dim=1, keepdim=True)
         f2 = self.psi(phiX)
         return f1 + f2
-
-
-class SNGAN_projection_Trainer(BaseTrainer):
-    def __init__(self, config_path):
-        super().__init__(config_path, conditional=True)
-
-    def define_models(self):
-        self.G = Generator(self.config['z_dim'], self.n_classes, self.img_channels)
-        self.D = Discriminator(self.n_classes, self.img_channels)
-        self.G.to(device=self.device)
-        self.D.to(device=self.device)
-
-    def define_optimizers(self):
-        self.optimizerG = optim.Adam(self.G.parameters(), lr=self.config['optimizer']['adam']['lr'], betas=self.config['optimizer']['adam']['betas'])
-        self.optimizerD = optim.Adam(self.D.parameters(), lr=self.config['optimizer']['adam']['lr'], betas=self.config['optimizer']['adam']['betas'])
-
-    def define_losses(self):
-        pass
-
-    def train_batch(self, ep, it, X, y=None):
-        assert X.shape[-2:] == (64, 64), f'SNGAN-projection only supports 64x64 input.'
-
-        X = X.to(device=self.device, dtype=torch.float32)
-        y = F.one_hot(y, num_classes=self.n_classes).to(device=self.device)
-
-        # --------- train discriminator --------- #
-        # min E[max(0, 1 - D(X, y))] + E[max(0, 1 + D(G(z, y), y))]
-        z = torch.randn((X.shape[0], self.config['z_dim']), device=self.device)
-        fake = self.G(z, y).detach()
-        d_real, d_fake = self.D(X, y), self.D(fake, y)
-        lossD = torch.mean(F.relu(1 - d_real) + F.relu(1 + d_fake))
-        self.optimizerD.zero_grad()
-        lossD.backward()
-        self.optimizerD.step()
-        self.writer.add_scalar('D/loss', lossD.item(), it + ep * len(self.dataloader))
-
-        # --------- train generator --------- #
-        # min -D(G(z, y), y)
-        if (it + 1) % self.config['d_iters'] == 0:
-            z = torch.randn((X.shape[0], self.config['z_dim'], 1, 1), device=self.device)
-            fake = self.G(z, y)
-            lossG = -torch.mean(self.D(fake, y))
-            self.optimizerG.zero_grad()
-            lossG.backward()
-            self.optimizerG.step()
-            self.writer.add_scalar('G/loss', lossG.item(), it + ep * len(self.dataloader))
 
 
 def _test():

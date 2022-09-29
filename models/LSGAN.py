@@ -1,8 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.optim as optim
-
-from train import BaseTrainer
 
 
 def weights_init(m):
@@ -108,67 +105,14 @@ class DiscriminatorCNN(nn.Module):
         return self.disc(X).squeeze()
 
 
-class LSGAN_Trainer(BaseTrainer):
-    def __init__(self, config_path):
-        super().__init__(config_path)
-
-    def define_models(self):
-        if self.config['model_arch'] == 'MLP':
-            self.G = GeneratorMLP(self.config['z_dim'], self.data_dim)
-            self.D = DiscriminatorMLP(self.data_dim)
-        elif self.config['model_arch'] == 'CNN':
-            self.G = GeneratorCNN(self.config['z_dim'], self.img_channels)
-            self.D = DiscriminatorCNN(self.img_channels)
-        else:
-            raise ValueError('model architecture should be either MLP or CNN.')
-        self.G.to(device=self.device)
-        self.D.to(device=self.device)
-
-    def define_optimizers(self):
-        self.optimizerG = optim.Adam(self.G.parameters(), lr=self.config['optimizer']['adam']['lr'])
-        self.optimizerD = optim.Adam(self.D.parameters(), lr=self.config['optimizer']['adam']['lr'])
-
-    def define_losses(self):
-        setattr(self, 'MSE', nn.MSELoss())
-
-    def train_batch(self, ep, it, X, y=None):
-        X = X.flatten(start_dim=1) if self.config['model_arch'] == 'MLP' else X
-        X = X.to(device=self.device, dtype=torch.float32)
-        MSE = getattr(self, 'MSE')
-
-        # --------- train discriminator --------- #
-        # min [(D(x)-b)^2 + (D(G(z))-a)^2] / 2
-        z = torch.randn((X.shape[0], self.config['z_dim']), device=self.device)
-        fake = self.G(z).detach()
-        realscore, fakescore = self.D(X), self.D(fake)
-        lossD = (MSE(realscore, torch.ones_like(realscore) * self.config['b']) +
-                 MSE(fakescore, torch.ones_like(fakescore) * self.config['a'])) / 2
-        self.optimizerD.zero_grad()
-        lossD.backward()
-        self.optimizerD.step()
-        self.writer.add_scalar('D/loss', lossD.item(), it + ep * len(self.dataloader))
-
-        # --------- train generator --------- #
-        # min (D(G(z))-c)^2 / 2
-        if (it + 1) % self.config['d_iters'] == 0:
-            z = torch.randn((X.shape[0], self.config['z_dim']), device=self.device)
-            fake = self.G(z)
-            fakescore = self.D(fake)
-            lossG = MSE(fakescore, torch.ones_like(fakescore) * self.config['c']) / 2
-            self.optimizerG.zero_grad()
-            lossG.backward()
-            self.optimizerG.step()
-            self.writer.add_scalar('G/loss', lossG.item(), it + ep * len(self.dataloader))
-
-
 def _test():
     G = GeneratorMLP(100, 1000)
     D = DiscriminatorMLP(1000)
     z = torch.randn(10, 100)
     fakeX = G(z)
     score = D(fakeX)
-    print(fakeX)
-    print(score)
+    print(fakeX.shape)
+    print(score.shape)
 
 
 if __name__ == '__main__':

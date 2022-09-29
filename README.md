@@ -14,7 +14,7 @@ Reproduce various GANs with PyTorch.
 - [x] SNGAN
 - [x] SNGAN-projection
 - [x] ACGAN
-- [ ] SAGAN
+- [x] SAGAN
 - [x] LSGAN
 - [x] VEEGAN
 
@@ -26,8 +26,8 @@ Run command:
 
 ```shell
 python train.py \
-[--config_path CONFIG_PATH] \
---model {gan,dcgan,cgan,acgan,wgan,wgan-gp,sngan,sngan-projection,lsgan,sagan,veegan}
+    --config_path CONFIG_PATH \
+    --model {gan,dcgan,cgan,acgan,wgan,wgan-gp,sngan,sngan-projection,lsgan,sagan,veegan}
 ```
 
 Some examples of configuration files are under `./configs/`, you can directly use them to train the models, or modify them as you wish.
@@ -40,17 +40,16 @@ Run command:
 
 ```shell
 python generate.py \
---model {gan,dcgan,cgan,acgan,wgan,wgan-gp,sngan,sngan-projection,lsgan,sagan,veegan} \
---model_path MODEL_PATH \
---mode {random,walk} \
---save_path SAVE_PATH \
-[--cpu] \
---z_dim Z_DIM \
-[--n_classes N_CLASSES] \
-[--data_dim DATA_DIM] \
-[--img_size IMG_SIZE] \
-[--img_channels IMG_CHANNELS] \
-[--conditional CONDITIONAL]
+    --model {gan,dcgan,cgan,acgan,wgan,wgan-gp,sngan,sngan-projection,lsgan,sagan,veegan} \
+    --model_path MODEL_PATH \
+    --mode {random,walk} \
+    --save_path SAVE_PATH \
+    --z_dim Z_DIM \
+    [--cpu] \
+    [--n_classes N_CLASSES] \
+    [--data_dim DATA_DIM] \
+    [--img_size IMG_SIZE] \
+    [--img_channels IMG_CHANNELS]
 ```
 
 
@@ -100,6 +99,12 @@ The **mode collapse** problem can be clearly observed.
 ### LSGAN
 
 <img src="./assets/lsgan-mnist-random.png" width=40% /> <img src="./assets/lsgan-celeba-random.png" width=40% />
+
+
+
+### SAGAN
+
+<img src="./assets/sagan-mnist-random.png" width=40% /> <img src="./assets/sagan-celeba-random.png" width=40% />
 
 
 

@@ -97,7 +97,7 @@ class Discriminator(nn.Module):
         self.last_conv = nn.Sequential(
             nn.BatchNorm2d(dim * dim_mults[-1]) if with_bn else nn.Identity(),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(dim * dim_mults[-1], 1, (4, 4), stride=(1, 1), padding=0),
+            nn.Conv2d(dim * dim_mults[-1], 1, (4, 4), stride=1, padding=0),
         )
 
         self.apply(init_weights(init_type))

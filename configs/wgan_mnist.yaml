@@ -1,0 +1,51 @@
+seed: 5678
+
+data:
+  name: MNIST
+  dataroot: /data/MNIST/
+  img_size: 28
+  img_channels: 1
+
+dataloader:
+  num_workers: 4
+  pin_memory: true
+  prefetch_factor: 2
+
+G:
+  target: models.simple_mlp.Generator
+  params:
+    z_dim: 100
+    out_dim: 784
+    dim: 256
+    dim_mults: [1, 1, 1]
+    with_bn: false
+    with_tanh: true
+
+D:
+  target: models.simple_mlp.Discriminator
+  params:
+    in_dim: 784
+    dim: 256
+    dim_mults: [1, 1, 1]
+    with_bn: false
+
+train:
+  n_steps: 100000
+  batch_size: 256
+  d_iters: 5
+  resume: ~
+  print_freq: 500
+  save_freq: 10000
+  sample_freq: 1000
+  n_samples: 64
+
+  weight_clip: [-0.01, 0.01]
+
+  optim_G:
+    target: torch.optim.RMSprop
+    params:
+      lr: 0.00005
+  optim_D:
+    target: torch.optim.RMSprop
+    params:
+      lr: 0.00005

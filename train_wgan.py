@@ -12,7 +12,7 @@ from torchvision.utils import save_image
 
 import accelerate
 
-from losses import VanillaGANLoss
+from losses import WGANLoss
 from utils.logger import StatusTracker, get_logger
 from utils.data import get_dataset, get_data_generator
 from utils.misc import get_time_str, create_exp_dir, check_freq, find_resume_checkpoint, instantiate_from_config
@@ -151,7 +151,7 @@ def train(args, cfg):
         accelerator.prepare(G, D, optimizer_G, optimizer_D, train_loader)  # type: ignore
 
     # DEFINE LOSS
-    vanilla_gan_loss = VanillaGANLoss(discriminator=D)
+    wgan_loss = WGANLoss(discriminator=D, lambda_gp=0.0)
 
     accelerator.wait_for_everyone()
 
@@ -165,9 +165,12 @@ def train(args, cfg):
         X = _discard_labels(X).float()
         z = torch.randn((X.shape[0], cfg.G.params.z_dim), device=device)
         fake = G(z).detach()
-        loss = vanilla_gan_loss.forward_D(fake, X)
+        loss = wgan_loss.forward_D(fake, X.reshape(fake.shape))
         accelerator.backward(loss)
         optimizer_D.step()
+        # weight clipping
+        for param in D.parameters():
+            param.data.clamp_(min=cfg.train.weight_clip[0], max=cfg.train.weight_clip[1])
         return dict(loss_D=loss.item(), lr_D=optimizer_D.param_groups[0]['lr'])
 
     def run_step_G(X):
@@ -175,7 +178,7 @@ def train(args, cfg):
         X = _discard_labels(X).float()
         z = torch.randn((X.shape[0], cfg.G.params.z_dim), device=device)
         fake = G(z)
-        loss = vanilla_gan_loss.forward_G(fake)
+        loss = wgan_loss.forward_G(fake)
         accelerator.backward(loss)
         optimizer_G.step()
         return dict(loss_G=loss.item(), lr_G=optimizer_G.param_groups[0]['lr'])

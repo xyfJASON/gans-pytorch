@@ -36,7 +36,8 @@ def get_parser():
 
 def train(args, cfg):
     # INITIALIZE ACCELERATOR
-    accelerator = accelerate.Accelerator()
+    ddp_kwargs = accelerate.DistributedDataParallelKwargs(broadcast_buffers=False)
+    accelerator = accelerate.Accelerator(kwargs_handlers=[ddp_kwargs])
     device = accelerator.device
     print(f'Process {accelerator.process_index} using device: {device}')
     accelerator.wait_for_everyone()
@@ -149,7 +150,7 @@ def train(args, cfg):
         accelerator.prepare(G, D, optimizer_G, optimizer_D, train_loader)  # type: ignore
 
     # DEFINE LOSS
-    vanilla_gan_loss = VanillaGANLoss()
+    vanilla_gan_loss = VanillaGANLoss(discriminator=D)
 
     accelerator.wait_for_everyone()
 
@@ -163,8 +164,7 @@ def train(args, cfg):
         X = _discard_labels(X).float()
         z = torch.randn((X.shape[0], cfg.G.params.z_dim), device=device)
         fake = G(z).detach()
-        realscore, fakescore = D(X), D(fake)
-        loss = vanilla_gan_loss.forward_D(fakescore, realscore)
+        loss = vanilla_gan_loss.forward_D(fake, X)
         accelerator.backward(loss)
         optimizer_D.step()
         return dict(loss_D=loss.item(), lr_D=optimizer_D.param_groups[0]['lr'])
@@ -174,8 +174,7 @@ def train(args, cfg):
         X = _discard_labels(X).float()
         z = torch.randn((X.shape[0], cfg.G.params.z_dim), device=device)
         fake = G(z)
-        fakescore = D(fake)
-        loss = vanilla_gan_loss.forward_G(fakescore)
+        loss = vanilla_gan_loss.forward_G(fake)
         accelerator.backward(loss)
         optimizer_G.step()
         return dict(loss_G=loss.item(), lr_G=optimizer_G.param_groups[0]['lr'])

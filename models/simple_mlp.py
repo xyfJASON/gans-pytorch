@@ -2,6 +2,7 @@ from typing import List
 
 import torch.nn as nn
 from torch import Tensor
+from torch.nn.utils.parametrizations import spectral_norm
 
 from models.init_weights import init_weights
 
@@ -63,6 +64,7 @@ class Discriminator(nn.Module):
             dim: int = 256,
             dim_mults: List[int] = (1, 1, 1),
             with_bn: bool = False,
+            with_sn: bool = False,
             init_type: str = None,
     ):
         """ A simple MLP discriminator.
@@ -72,22 +74,25 @@ class Discriminator(nn.Module):
             dim: Base dimension.
             dim_mults: Multiplies of dimensions.
             with_bn: Use batch normalization.
+            with_sn: Use spectral normalization on linear layers.
             init_type: Type of weight initialization.
 
         """
         super().__init__()
-        self.first_layer = nn.Linear(in_dim, dim)
+        self.with_sn = with_sn
+
+        self.first_layer = self.get_linear(in_dim, dim)
         self.layers = nn.ModuleList([])
         for i in range(len(dim_mults) - 1):
             self.layers.append(nn.Sequential(
                 nn.BatchNorm1d(dim * dim_mults[i]) if i > 0 and with_bn else nn.Identity(),
                 nn.LeakyReLU(0.2, inplace=True),
-                nn.Linear(dim * dim_mults[i], dim * dim_mults[i+1]),
+                self.get_linear(dim * dim_mults[i], dim * dim_mults[i+1]),
             ))
         self.last_layer = nn.Sequential(
             nn.BatchNorm1d(dim * dim_mults[-1]) if with_bn else nn.Identity(),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Linear(dim * dim_mults[-1], 1),
+            self.get_linear(dim * dim_mults[-1], 1),
         )
 
         self.apply(init_weights(init_type))
@@ -100,6 +105,12 @@ class Discriminator(nn.Module):
             X = layer(X)
         X = self.last_layer(X)
         return X
+
+    def get_linear(self, *args, **kwargs):
+        if self.with_sn:
+            return spectral_norm(nn.Linear(*args, **kwargs))
+        else:
+            return nn.Linear(*args, **kwargs)
 
 
 def _test():

@@ -2,6 +2,7 @@ from typing import List
 
 import torch.nn as nn
 from torch import Tensor
+from torch.nn.utils.parametrizations import spectral_norm
 
 from models.init_weights import init_weights
 
@@ -69,6 +70,7 @@ class Discriminator(nn.Module):
             dim: int = 128,
             dim_mults: List[int] = (1, 2, 4, 8),
             with_bn: bool = True,
+            with_sn: bool = False,
             init_type: str = 'normal',
     ):
         """ A simple CNN discriminator.
@@ -82,22 +84,25 @@ class Discriminator(nn.Module):
             dim: Base dimension.
             dim_mults: Multiplies of dimensions.
             with_bn: Use batch normalization.
+            with_sn: Use spectral normalization on convolutional layers.
             init_type: Type of weight initialization.
 
         """
         super().__init__()
-        self.first_conv = nn.Conv2d(in_dim, dim * dim_mults[0], (4, 4), stride=2, padding=1)
+        self.with_sn = with_sn
+
+        self.first_conv = self.get_conv2d(in_dim, dim * dim_mults[0], (4, 4), stride=2, padding=1)
         self.layers = nn.ModuleList([])
         for i in range(len(dim_mults) - 1):
             self.layers.append(nn.Sequential(
                 nn.BatchNorm2d(dim * dim_mults[i]) if i > 0 and with_bn else nn.Identity(),
                 nn.LeakyReLU(0.2, inplace=True),
-                nn.Conv2d(dim * dim_mults[i], dim * dim_mults[i+1], (4, 4), stride=2, padding=1)
+                self.get_conv2d(dim * dim_mults[i], dim * dim_mults[i+1], (4, 4), stride=2, padding=1)
             ))
         self.last_conv = nn.Sequential(
             nn.BatchNorm2d(dim * dim_mults[-1]) if with_bn else nn.Identity(),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(dim * dim_mults[-1], 1, (4, 4), stride=1, padding=0),
+            self.get_conv2d(dim * dim_mults[-1], 1, (4, 4), stride=1, padding=0),
         )
 
         self.apply(init_weights(init_type))
@@ -108,6 +113,12 @@ class Discriminator(nn.Module):
             X = layer(X)
         X = self.last_conv(X)
         return X.squeeze()
+
+    def get_conv2d(self, *args, **kwargs):
+        if self.with_sn:
+            return spectral_norm(nn.Conv2d(*args, **kwargs))
+        else:
+            return nn.Conv2d(*args, **kwargs)
 
 
 def _test():
@@ -121,5 +132,13 @@ def _test():
     print(score.shape)
 
 
+def _test_sn():
+    D = Discriminator(with_sn=False)
+    print(D)
+    D = Discriminator(with_sn=True)
+    print(D)
+
+
 if __name__ == '__main__':
     _test()
+    _test_sn()

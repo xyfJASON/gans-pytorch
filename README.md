@@ -15,7 +15,7 @@ My implementations of GANs with PyTorch.
 - [ ] SNGAN-projection
 - [ ] ACGAN
 - [ ] SAGAN
-- [ ] LSGAN
+- [x] LSGAN
 - [ ] VEEGAN
 
 <br/>
@@ -30,16 +30,19 @@ My implementations of GANs with PyTorch.
 
 **Quantitative results**:
 
-- All the metrics are evaluated on 50k samples.
-- The FID is calculated between 50k generated samples and the CIFAR-10 training split.
+- The FID is calculated between 50k generated samples and the CIFAR-10 training split (50k images).
+- The Inception Score is calculated on 50k generated samples.
+- All models except LSGAN are trained for 40k generator update steps. However, the optimizers and learning rates are different for each model, so some models may not reach their optimal performance.
+  - LSGAN is trained for 30k generator update steps because I found the image quality drops between 30k-40k steps.
+
 
 <table style="text-align: center">
     <tr>
         <th>Model</th>
         <th>Arch</th>
         <th>Loss</th>
-        <th>FID@50k</th>
-        <th>IS</th>
+        <th>FID@50k ↓</th>
+        <th>Inception Score ↑</th>
     </tr>
     <tr>
         <td>DCGAN</td>
@@ -66,7 +69,7 @@ My implementations of GANs with PyTorch.
         <td>SNGAN</td>
         <td>Simple CNN</td>
         <td>Vanilla</td>
-        <td>27.24866</td>
+        <td>27.2486</td>
         <td>6.9839 ± 0.0774</td>
     </tr>
     <tr>
@@ -75,6 +78,13 @@ My implementations of GANs with PyTorch.
         <td>Hinge</td>
         <td>28.7972</td>
         <td>6.8365 ± 0.0787</td>
+    </tr>
+    <tr>
+        <td>LSGAN</td>
+        <td>Simple CNN</td>
+        <td>Least Sqaure</td>
+        <td>35.2344</td>
+        <td>6.3496 ± 0.0748</td>
     </tr>
 </table>
 
@@ -94,10 +104,12 @@ My implementations of GANs with PyTorch.
     <tr>
         <th>SNGAN (vanilla loss)</th>
         <th>SNGAN (hinge loss)</th>
+        <th>LSGAN</th>
     </tr>
     <tr>
         <td><img src="./assets/sngan-cifar10.png"/></td>
         <td><img src="./assets/sngan-hinge-cifar10.png"/></td>
+        <td><img src="./assets/lsgan-cifar10.png"/></td>
     </tr>
 </table>
 
@@ -280,8 +292,48 @@ The pathological weights distribution in WGAN's discriminator does not appear in
         <td><img src="./assets/sngan/mnist/step049999.png" ></td>
     </tr>
 </table>
-Note: The above SNGAN are trained with the vanilla GAN loss, rather than the hinge loss.
+Note: The above SNGAN are trained with the vanilla GAN loss instead of the hinge loss.
 
 SNGAN uses spectral normalization to control the Lipschitz constant of the discriminator. Even with the vanilla GAN loss, SNGAN can avoid mode collapse problem.
 
 
+
+### LSGAN
+
+<table style="text-align: center">
+    <tr>
+        <th>3000 steps</th>
+        <th>6000 steps</th>
+        <th>9000 steps</th>
+        <th>12000 steps</th>
+        <th>50000 steps</th>
+    </tr>
+    <tr>
+        <td><img src="./assets/lsgan/ring8/step002999.png" ></td>
+        <td><img src="./assets/lsgan/ring8/step005999.png" ></td>
+        <td><img src="./assets/lsgan/ring8/step008999.png" ></td>
+        <td><img src="./assets/lsgan/ring8/step011999.png" ></td>
+        <td><img src="./assets/lsgan/ring8/step049999.png" ></td>
+    </tr>
+</table>
+
+<table style="text-align: center">
+    <tr>
+        <th>4000 steps</th>
+        <th>8000 steps</th>
+        <th>12000 steps</th>
+        <th>16000 steps</th>
+        <th>50000 steps</th>
+    </tr>
+    <tr>
+        <td><img src="./assets/lsgan/mnist/step003999.png" ></td>
+        <td><img src="./assets/lsgan/mnist/step007999.png" ></td>
+        <td><img src="./assets/lsgan/mnist/step011999.png" ></td>
+        <td><img src="./assets/lsgan/mnist/step015999.png" ></td>
+        <td><img src="./assets/lsgan/mnist/step049999.png" ></td>
+    </tr>
+</table>
+
+LSGAN uses MSE instead of Cross-Entropy as the loss function to overcome the vanishing gradients in vanilla GAN. However, it still suffers from the mode collapse problem. For example, as shown above, LSGAN fails to cover all 8 modes on the Ring8 dataset.
+
+Note: Contrary to the claim in the paper, I found that LSGAN w/o batch normalization does not converge on MNIST.

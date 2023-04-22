@@ -31,7 +31,7 @@ D:
     with_sn: true
 
 train:
-  n_steps: 200000
+  n_steps: 40000
   batch_size: 512
   d_iters: 1
   resume: ~
@@ -39,6 +39,8 @@ train:
   save_freq: 10000
   sample_freq: 1000
   n_samples: 64
+
+  loss_type: vanilla
 
   optim_G:
     target: torch.optim.Adam

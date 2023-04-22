@@ -66,8 +66,15 @@ My implementations of GANs with PyTorch.
         <td>SNGAN</td>
         <td>Simple CNN</td>
         <td>Vanilla</td>
-        <td>32.6427</td>
-        <td>6.2477 ± 0.0564</td>
+        <td>27.24866</td>
+        <td>6.9839 ± 0.0774</td>
+    </tr>
+    <tr>
+        <td>SNGAN</td>
+        <td>Simple CNN</td>
+        <td>Hinge</td>
+        <td>28.7972</td>
+        <td>6.8365 ± 0.0787</td>
     </tr>
 </table>
 
@@ -85,13 +92,14 @@ My implementations of GANs with PyTorch.
         <td><img src="./assets/wgan-gp-cifar10.png"/></td>
     </tr>
     <tr>
-        <th>SNGAN</th>
+        <th>SNGAN (vanilla loss)</th>
+        <th>SNGAN (hinge loss)</th>
     </tr>
     <tr>
         <td><img src="./assets/sngan-cifar10.png"/></td>
+        <td><img src="./assets/sngan-hinge-cifar10.png"/></td>
     </tr>
 </table>
-
 
 
 
@@ -272,6 +280,8 @@ The pathological weights distribution in WGAN's discriminator does not appear in
         <td><img src="./assets/sngan/mnist/step049999.png" ></td>
     </tr>
 </table>
+Note: The above SNGAN are trained with the vanilla GAN loss, rather than the hinge loss.
 
 SNGAN uses spectral normalization to control the Lipschitz constant of the discriminator. Even with the vanilla GAN loss, SNGAN can avoid mode collapse problem.
+
 

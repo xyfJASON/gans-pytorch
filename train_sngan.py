@@ -12,7 +12,7 @@ from torchvision.utils import save_image
 
 import accelerate
 
-from losses import VanillaGANLoss
+from losses import VanillaGANLoss, HingeLoss
 from utils.logger import StatusTracker, get_logger
 from utils.data import get_dataset, get_data_generator
 from utils.misc import get_time_str, create_exp_dir, check_freq, find_resume_checkpoint, instantiate_from_config
@@ -151,7 +151,12 @@ def train(args, cfg):
         accelerator.prepare(G, D, optimizer_G, optimizer_D, train_loader)  # type: ignore
 
     # DEFINE LOSS
-    vanilla_gan_loss = VanillaGANLoss(discriminator=D)
+    if cfg.train.loss_type == 'vanilla':
+        gan_loss = VanillaGANLoss(discriminator=D)
+    elif cfg.train.loss_type == 'hinge':
+        gan_loss = HingeLoss(discriminator=D)
+    else:
+        raise ValueError(f'Unsupported loss type: {cfg.train.loss_type}')
 
     accelerator.wait_for_everyone()
 
@@ -165,7 +170,7 @@ def train(args, cfg):
         X = _discard_labels(X).float()
         z = torch.randn((X.shape[0], cfg.G.params.z_dim), device=device)
         fake = G(z).detach()
-        loss = vanilla_gan_loss.forward_D(fake, X)
+        loss = gan_loss.forward_D(fake, X)
         accelerator.backward(loss)
         optimizer_D.step()
         return dict(loss_D=loss.item(), lr_D=optimizer_D.param_groups[0]['lr'])
@@ -175,7 +180,7 @@ def train(args, cfg):
         X = _discard_labels(X).float()
         z = torch.randn((X.shape[0], cfg.G.params.z_dim), device=device)
         fake = G(z)
-        loss = vanilla_gan_loss.forward_G(fake)
+        loss = gan_loss.forward_G(fake)
         accelerator.backward(loss)
         optimizer_G.step()
         return dict(loss_G=loss.item(), lr_G=optimizer_G.param_groups[0]['lr'])

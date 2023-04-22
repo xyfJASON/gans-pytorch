@@ -7,10 +7,10 @@ class VanillaGANLoss(nn.Module):
     """ The vanilla GAN loss (-log alternative).
 
     Objective of the discriminator:
-        min -[log(D(x)) + log(1-D(G(z)))]
+        min -E[log(D(x))] + E[log(1-D(G(z)))]
 
     Objective of the generator:
-        max -log(1-D(G(z))) => min -log(D(G(z)))
+        max -E[log(1-D(G(z)))] => min -E[log(D(G(z)))]
 
     References:
         Goodfellow, Ian, Jean Pouget-Abadie, Mehdi Mirza, Bing Xu, David Warde-Farley, Sherjil Ozair, Aaron Courville,

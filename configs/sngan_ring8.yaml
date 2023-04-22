@@ -37,6 +37,8 @@ train:
   sample_freq: 1000
   n_samples: 1000
 
+  loss_type: vanilla
+
   optim_G:
     target: torch.optim.Adam
     params:

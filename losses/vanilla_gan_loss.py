@@ -22,12 +22,12 @@ class VanillaGANLoss(nn.Module):
         self.discriminator = discriminator
         self.bce_with_logits = nn.BCEWithLogitsLoss()
 
-    def forward_G(self, fake_data: Tensor):
-        fake_score = self.discriminator(fake_data)
+    def forward_G(self, fake_data: Tensor, *args):
+        fake_score = self.discriminator(fake_data, *args)
         return self.bce_with_logits(fake_score, torch.ones_like(fake_score))
 
-    def forward_D(self, fake_data: Tensor, real_data: Tensor):
-        fake_score = self.discriminator(fake_data.detach())
-        real_score = self.discriminator(real_data)
+    def forward_D(self, fake_data: Tensor, real_data: Tensor, *args):
+        fake_score = self.discriminator(fake_data.detach(), *args)
+        real_score = self.discriminator(real_data, *args)
         return (self.bce_with_logits(fake_score, torch.zeros_like(fake_score)) +
                 self.bce_with_logits(real_score, torch.ones_like(real_score))) / 2

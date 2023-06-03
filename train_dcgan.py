@@ -1,6 +1,5 @@
 import os
 
-import tqdm
 import math
 import argparse
 from yacs.config import CfgNode as CN
@@ -179,28 +178,14 @@ def train(args, cfg):
         optimizer_G.step()
         return dict(loss_G=loss.item(), lr_G=optimizer_G.param_groups[0]['lr'])
 
+    @accelerator.on_main_process
     @torch.no_grad()
     def sample(savepath: str):
-
-        def amortize(n_samples: int, _batch_size: int):
-            k = n_samples // _batch_size
-            r = n_samples % _batch_size
-            return k * [_batch_size] if r == 0 else k * [_batch_size] + [r]
-
         unwrapped_G = accelerator.unwrap_model(G)
-        all_samples = []
-        mb = min(batch_size_per_process, math.ceil(cfg.train.n_samples / accelerator.num_processes))
-        batch_size = mb * accelerator.num_processes
-        for bs in tqdm.tqdm(amortize(cfg.train.n_samples, batch_size), desc='Sampling',
-                            leave=False, disable=not accelerator.is_main_process):
-            z = torch.randn((mb, cfg.G.params.z_dim), device=device)
-            samples = unwrapped_G(z)
-            samples = accelerator.gather(samples)[:bs]
-            all_samples.append(samples)
-        all_samples = torch.cat(all_samples, dim=0).cpu()
-        if accelerator.is_main_process:
-            nrow = math.ceil(math.sqrt(cfg.train.n_samples))
-            save_image(all_samples, savepath, nrow=nrow, normalize=True, value_range=(-1, 1))
+        z = torch.randn((cfg.train.n_samples, cfg.G.params.z_dim), device=device)
+        samples = unwrapped_G(z).cpu()
+        nrow = math.ceil(math.sqrt(cfg.train.n_samples))
+        save_image(samples, savepath, nrow=nrow, normalize=True, value_range=(-1, 1))
 
     # START TRAINING
     logger.info('Start training...')

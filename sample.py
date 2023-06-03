@@ -54,8 +54,10 @@ def sample():
     idx = 0
     micro_batch = min(args.micro_batch, math.ceil(args.n_samples / accelerator.num_processes))
     batch_size = micro_batch * accelerator.num_processes
-    for bs in tqdm.tqdm(amortize(args.n_samples, batch_size), desc='Sampling',
-                        disable=not accelerator.is_main_process):
+    for bs in tqdm.tqdm(
+            amortize(args.n_samples, batch_size), desc='Sampling',
+            disable=not accelerator.is_main_process,
+    ):
         init_noise = torch.randn((micro_batch, cfg.G.params.z_dim), device=device)
         samples = G(init_noise).clamp(-1, 1)
         samples = accelerator.gather(samples)[:bs]

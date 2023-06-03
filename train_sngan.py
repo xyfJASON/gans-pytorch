@@ -1,6 +1,5 @@
 import os
 
-import tqdm
 import math
 import argparse
 import matplotlib.pyplot as plt
@@ -185,40 +184,26 @@ def train(args, cfg):
         optimizer_G.step()
         return dict(loss_G=loss.item(), lr_G=optimizer_G.param_groups[0]['lr'])
 
+    @accelerator.on_main_process
     @torch.no_grad()
     def sample(savepath: str):
-
-        def amortize(n_samples: int, _batch_size: int):
-            k = n_samples // _batch_size
-            r = n_samples % _batch_size
-            return k * [_batch_size] if r == 0 else k * [_batch_size] + [r]
-
         unwrapped_G = accelerator.unwrap_model(G)
-        all_samples = []
-        mb = min(batch_size_per_process, math.ceil(cfg.train.n_samples / accelerator.num_processes))
-        batch_size = mb * accelerator.num_processes
-        for bs in tqdm.tqdm(amortize(cfg.train.n_samples, batch_size), desc='Sampling',
-                            leave=False, disable=not accelerator.is_main_process):
-            z = torch.randn((mb, cfg.G.params.z_dim), device=device)
-            samples = unwrapped_G(z)
-            samples = accelerator.gather(samples)[:bs]
-            all_samples.append(samples)
-        all_samples = torch.cat(all_samples, dim=0).cpu()
-        if accelerator.is_main_process:
-            if _discard_labels(train_set[0]).ndim == 3:  # images
-                nrow = math.ceil(math.sqrt(cfg.train.n_samples))
-                all_samples = all_samples.view(-1, cfg.data.img_channels, cfg.data.img_size, cfg.data.img_size)
-                save_image(all_samples, savepath, nrow=nrow, normalize=True, value_range=(-1, 1))
-            else:  # 2D scatters
-                real = torch.stack([d for d in train_set], dim=0)
-                real = train_set.scaler.inverse_transform(real)
-                all_samples = train_set.scaler.inverse_transform(all_samples)
-                fig, ax = plt.subplots(1, 1)
-                ax.scatter(real[:, 0], real[:, 1], c='green', s=1, alpha=0.5)
-                ax.scatter(all_samples[:, 0], all_samples[:, 1], c='blue', s=1)
-                ax.axis('scaled'); ax.set_xlim(-15, 15); ax.set_ylim(-15, 15)
-                fig.savefig(savepath, dpi=100, bbox_inches='tight')
-                plt.close(fig)
+        z = torch.randn((cfg.train.n_samples, cfg.G.params.z_dim), device=device)
+        samples = unwrapped_G(z).cpu()
+        if _discard_labels(train_set[0]).ndim == 3:  # images
+            nrow = math.ceil(math.sqrt(cfg.train.n_samples))
+            samples = samples.view(-1, cfg.data.img_channels, cfg.data.img_size, cfg.data.img_size)
+            save_image(samples, savepath, nrow=nrow, normalize=True, value_range=(-1, 1))
+        else:  # 2D scatters
+            real = torch.stack([d for d in train_set], dim=0)
+            real = train_set.scaler.inverse_transform(real)
+            samples = train_set.scaler.inverse_transform(samples)
+            fig, ax = plt.subplots(1, 1)
+            ax.scatter(real[:, 0], real[:, 1], c='green', s=1, alpha=0.5)
+            ax.scatter(samples[:, 0], samples[:, 1], c='blue', s=1)
+            ax.axis('scaled'); ax.set_xlim(-15, 15); ax.set_ylim(-15, 15)
+            fig.savefig(savepath, dpi=100, bbox_inches='tight')
+            plt.close(fig)
 
     # START TRAINING
     logger.info('Start training...')

@@ -30,7 +30,7 @@ D:
     with_bn: false
 
 train:
-  n_steps: 100000
+  n_steps: 10000
   batch_size: 256
   d_iters: 5
   resume: ~
@@ -41,11 +41,16 @@ train:
 
   weight_clip: [-0.01, 0.01]
 
+  loss_fn:
+    target: losses.wgan_loss.WGANLoss
+    params:
+      lambda_gp: 0.0
+
   optim_G:
     target: torch.optim.RMSprop
     params:
-      lr: 0.00005
+      lr: 0.0003
   optim_D:
     target: torch.optim.RMSprop
     params:
-      lr: 0.00005
+      lr: 0.0003

@@ -30,7 +30,7 @@ D:
     with_bn: true
 
 train:
-  n_steps: 200000
+  n_steps: 40000
   batch_size: 512
   d_iters: 5
   resume: ~
@@ -42,10 +42,10 @@ train:
   optim_G:
     target: torch.optim.Adam
     params:
-      lr: 0.0002
+      lr: 0.0008
       betas: [0.5, 0.999]
   optim_D:
     target: torch.optim.Adam
     params:
-      lr: 0.0002
+      lr: 0.0008
       betas: [0.5, 0.999]

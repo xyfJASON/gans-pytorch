@@ -27,24 +27,27 @@ D:
     with_bn: false
 
 train:
-  n_steps: 50000
+  n_steps: 5000
   batch_size: 256
   d_iters: 5
   resume: ~
-  print_freq: 500
-  save_freq: 10000
-  sample_freq: 1000
+  print_freq: 100
+  save_freq: 1000
+  sample_freq: 200
   n_samples: 1000
 
-  lambda_gp: 0.1
+  loss_fn:
+    target: losses.wgan_loss.WGANLoss
+    params:
+      lambda_gp: 0.1
 
   optim_G:
     target: torch.optim.Adam
     params:
-      lr: 0.0001
+      lr: 0.0003
       betas: [0.5, 0.9]
   optim_D:
     target: torch.optim.Adam
     params:
-      lr: 0.0001
+      lr: 0.0003
       betas: [0.5, 0.9]

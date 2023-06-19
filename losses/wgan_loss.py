@@ -31,6 +31,8 @@ class WGANLoss(nn.Module):
         self.lambda_gp = lambda_gp
 
     def gradient_penalty(self, fake_data: Tensor, real_data: Tensor):
+        fake_data = fake_data.view(fake_data.shape[0], -1)
+        real_data = real_data.view(real_data.shape[0], -1)
         alpha = torch.rand((1, ), device=fake_data.device)
         inter_data = alpha * real_data + (1 - alpha) * fake_data
         inter_data.requires_grad_()

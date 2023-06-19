@@ -33,7 +33,7 @@ Implement GANs with PyTorch.
 
 |  Model  |            G. Arch.            |    D. Arch.    |                Loss                |                        Configs & Args                        |
 | :-----: | :----------------------------: | :------------: | :--------------------------------: | :----------------------------------------------------------: |
-|  DCGAN  |           SimpleCNN            |   SimpleCNN    |              Vanilla               |         [config file](./configs/dcgan_cifar10.yaml)          |
+|  DCGAN  |           SimpleCNN            |   SimpleCNN    |              Vanilla               |         [config file](./configs/gan_cifar10.yaml)          |
 |  WGAN   |           SimpleCNN            |   SimpleCNN    | Wasserstein<br/>(weight clipping)  |          [config file](./configs/wgan_cifar10.yaml)          |
 | WGAN-GP |           SimpleCNN            |   SimpleCNN    | Wasserstein<br/>(gradient penalty) |        [config file](./configs/wgan_gp_cifar10.yaml)         |
 |  SNGAN  |           SimpleCNN            | SimpleCNN (SN) |              Vanilla               |         [config file](./configs/sngan_cifar10.yaml)          |
@@ -55,7 +55,7 @@ Implement GANs with PyTorch.
 
 |        Model         |  FID ↓  | Inception Score ↑ |
 | :------------------: | :-----: | :---------------: |
-|        DCGAN         | 24.8453 |  7.1121 ± 0.0690  |
+|        DCGAN         | 24.7311 |  7.0339 ± 0.0861  |
 |         WGAN         | 51.0953 |  5.5291 ± 0.0621  |
 |       WGAN-GP        | 31.8783 |  6.7391 ± 0.0814  |
 | SNGAN (vanilla loss) | 27.2486 |  6.9839 ± 0.0774  |
@@ -77,7 +77,7 @@ Implement GANs with PyTorch.
         <th>WGAN-GP</th>
     </tr>
     <tr>
-        <td><img src="./assets/dcgan-cifar10.png"/></td>
+        <td><img src="./assets/gan/cifar10.png"/></td>
         <td><img src="./assets/wgan-cifar10.png"/></td>
         <td><img src="./assets/wgan-gp-cifar10.png"/></td>
     </tr>
@@ -92,6 +92,7 @@ Implement GANs with PyTorch.
         <td><img src="./assets/lsgan-cifar10.png"/></td>
     </tr>
 </table>
+
 
 
 <br/>
@@ -203,7 +204,6 @@ For simplicity, the model architecture in all experiments is SimpleMLP, namely a
     </tr>
 </table>
 
-
 On the Ring8 dataset, it can be clearly seen that all the generated data gather to only one of the 8 modes.
 
 In the MNIST case, the generated images eventually collapse to 1.
@@ -245,7 +245,6 @@ In the MNIST case, the generated images eventually collapse to 1.
         <td><img src="./assets/wgan/mnist/step008999.png" ></td>
     </tr>
 </table>
-
 
 WGAN indeed resolves the mode collapse problem, but converges much slower due to weight clipping.
 
@@ -375,10 +374,50 @@ SNGAN uses spectral normalization to control the Lipschitz constant of the discr
     </tr>
 </table>
 
-
 LSGAN uses MSE instead of Cross-Entropy as the loss function to overcome the vanishing gradients in vanilla GAN. However, it still suffers from the mode collapse problem. For example, as shown above, LSGAN fails to cover all 8 modes on the Ring8 dataset.
 
 Note: Contrary to the claim in the paper, I found that LSGAN w/o batch normalization does not converge on MNIST.
+
+
+
+### GAN + R1 regularization
+
+<table style="text-align: center">
+    <tr>
+        <th>200 steps</th>
+        <th>400 steps</th>
+        <th>600 steps</th>
+        <th>800 steps</th>
+        <th>5000 steps</th>
+    </tr>
+    <tr>
+        <td><img src="./assets/gan-r1reg/ring8/step000199.png" ></td>
+        <td><img src="./assets/gan-r1reg/ring8/step000399.png" ></td>
+        <td><img src="./assets/gan-r1reg/ring8/step000599.png" ></td>
+        <td><img src="./assets/gan-r1reg/ring8/step000799.png" ></td>
+        <td><img src="./assets/gan-r1reg/ring8/step004999.png" ></td>
+    </tr>
+</table>
+
+<table style="text-align: center">
+    <tr>
+        <th>1000 steps</th>
+        <th>3000 steps</th>
+        <th>5000 steps</th>
+        <th>7000 steps</th>
+        <th>9000 steps</th>
+    </tr>
+    <tr>
+        <td><img src="./assets/gan-r1reg/mnist/step000999.png" ></td>
+        <td><img src="./assets/gan-r1reg/mnist/step002999.png" ></td>
+        <td><img src="./assets/gan-r1reg/mnist/step004999.png" ></td>
+        <td><img src="./assets/gan-r1reg/mnist/step006999.png" ></td>
+        <td><img src="./assets/gan-r1reg/mnist/step008999.png" ></td>
+    </tr>
+</table>
+
+
+R1 regularization, a technique to stabilize the training process of GANs, can prevent mode collapse in vanilla GAN as well.
 
 
 

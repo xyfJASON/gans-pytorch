@@ -34,10 +34,16 @@ train:
   batch_size: 512
   d_iters: 5
   resume: ~
-  print_freq: 500
+  print_freq: 100
   save_freq: 10000
   sample_freq: 1000
+  eval_freq: 1000
   n_samples: 64
+
+  loss_fn:
+    target: losses.vanilla_gan_loss.VanillaGANLoss
+    params:
+      lambda_r1_reg: 0.0
 
   optim_G:
     target: torch.optim.Adam

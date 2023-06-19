@@ -41,7 +41,8 @@ train:
 
   loss_fn:
     target: losses.vanilla_gan_loss.VanillaGANLoss
-    params: {}
+    params:
+      lambda_r1_reg: 0.0
 
   optim_G:
     target: torch.optim.Adam

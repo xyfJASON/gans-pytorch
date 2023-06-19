@@ -216,19 +216,23 @@ def train(args, cfg):
     @accelerator.on_main_process
     @torch.no_grad()
     def evaluate():
-        assert cfg.data.name == 'CIFAR-10', 'evaluate only support CIFAR-10 for now'
+        assert cfg.data.name == 'CIFAR-10', 'only supports evaluating on CIFAR-10 for now'
         idx = 0
         unwrapped_G = accelerator.unwrap_model(G)
         with tempfile.TemporaryDirectory() as temp_dir:
-            for n in tqdm.tqdm(amortize(50000, batch_size_per_process), desc='Evaluate', leave=False):
+            for n in tqdm.tqdm(
+                    amortize(50000, batch_size_per_process), leave=False,
+                    desc=f'Evaluating (temporarily save samples to {temp_dir})',
+            ):
                 z = torch.randn((n, cfg.G.params.z_dim), device=device)
                 samples = unwrapped_G(z).cpu()
                 for x in samples:
                     save_image(x, os.path.join(temp_dir, f'{idx}.png'), nrow=1, normalize=True, value_range=(-1, 1))
+                    idx += 1
             out = torch_fidelity.calculate_metrics(
                 input1=temp_dir,
                 input2='cifar10-train',
-                batch_size=batch_size_per_process,
+                cuda=True,
                 fid=True,
                 verbose=False,
             )

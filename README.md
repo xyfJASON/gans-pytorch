@@ -31,15 +31,16 @@ Implement GANs with PyTorch.
 
 **Notes**:
 
-|  Model  |            G. Arch.            |    D. Arch.    |                Loss                |                        Configs & Args                        |
-| :-----: | :----------------------------: | :------------: | :--------------------------------: | :----------------------------------------------------------: |
-|  DCGAN  |           SimpleCNN            |   SimpleCNN    |              Vanilla               |         [config file](./configs/gan_cifar10.yaml)          |
-|  WGAN   |           SimpleCNN            |   SimpleCNN    | Wasserstein<br/>(weight clipping)  |          [config file](./configs/wgan_cifar10.yaml)          |
-| WGAN-GP |           SimpleCNN            |   SimpleCNN    | Wasserstein<br/>(gradient penalty) |        [config file](./configs/wgan_gp_cifar10.yaml)         |
-|  SNGAN  |           SimpleCNN            | SimpleCNN (SN) |              Vanilla               |         [config file](./configs/sngan_cifar10.yaml)          |
-|  SNGAN  |           SimpleCNN            | SimpleCNN (SN) |               Hinge                | [config file](./configs/sngan_cifar10.yaml)<br/>`--train.loss_type hinge` |
-|  LSGAN  |           SimpleCNN            |   SimpleCNN    |            Least Sqaure            |         [config file](./configs/lsgan_cifar10.yaml)          |
-|  SAGAN  | SimpleCNN (SN)<br/>+ Attention |   SimpleCNN    |               Hinge                |         [config file](./configs/sagan_cifar10.yaml)          |
+|     Model      |            G. Arch.            |    D. Arch.    |                Loss                |                      Configs                      |               Additional args               |
+| :------------: | :----------------------------: | :------------: | :--------------------------------: | :-----------------------------------------------: | :-----------------------------------------: |
+|     DCGAN      |           SimpleCNN            |   SimpleCNN    |              Vanilla               |     [config file](./configs/gan_cifar10.yaml)     |                                             |
+| DCGAN + R1 reg |           SimpleCNN            |   SimpleCNN    |   Vanilla<br/>R1 regularization    |     [config file](./configs/gan_cifar10.yaml)     | `--train.loss_fn.params.lambda_r1_reg 10.0` |
+|      WGAN      |           SimpleCNN            |   SimpleCNN    | Wasserstein<br/>(weight clipping)  |    [config file](./configs/wgan_cifar10.yaml)     |                                             |
+|    WGAN-GP     |           SimpleCNN            |   SimpleCNN    | Wasserstein<br/>(gradient penalty) |   [config file](./configs/wgan_gp_cifar10.yaml)   |                                             |
+|     SNGAN      |           SimpleCNN            | SimpleCNN (SN) |              Vanilla               |    [config file](./configs/sngan_cifar10.yaml)    |                                             |
+|     SNGAN      |           SimpleCNN            | SimpleCNN (SN) |               Hinge                | [config file](./configs/sngan_hinge_cifar10.yaml) |                                             |
+|     LSGAN      |           SimpleCNN            |   SimpleCNN    |            Least Sqaure            |    [config file](./configs/lsgan_cifar10.yaml)    |                                             |
+|     SAGAN      | SimpleCNN (SN)<br/>+ Attention |   SimpleCNN    |               Hinge                |    [config file](./configs/sagan_cifar10.yaml)    |                                             |
 
 - SN stands for "Spectral Normalization".
 
@@ -56,9 +57,10 @@ Implement GANs with PyTorch.
 |        Model         |  FID ↓  | Inception Score ↑ |
 | :------------------: | :-----: | :---------------: |
 |        DCGAN         | 24.7311 |  7.0339 ± 0.0861  |
+|    DCGAN + R1 reg    | 24.1535 |  7.0188 ± 0.1089  |
 |         WGAN         | 51.0953 |  5.5291 ± 0.0621  |
 |       WGAN-GP        | 31.8783 |  6.7391 ± 0.0814  |
-| SNGAN (vanilla loss) | 27.2486 |  6.9839 ± 0.0774  |
+| SNGAN (vanilla loss) | 24.9151 |  6.8838 ± 0.0667  |
 |  SNGAN (hinge loss)  | 28.7972 |  6.8365 ± 0.0787  |
 |        LSGAN         | 35.2344 |  6.3496 ± 0.0748  |
 |        SAGAN         |         |                   |
@@ -73,11 +75,13 @@ Implement GANs with PyTorch.
 <table style="text-align: center">
     <tr>
         <th>DCGAN</th>
+        <th>DCGAN + R1 reg</th>
         <th>WGAN</th>
         <th>WGAN-GP</th>
     </tr>
     <tr>
         <td><img src="./assets/gan/cifar10.png"/></td>
+        <td><img src="./assets/gan-r1reg/cifar10.png"/></td>
         <td><img src="./assets/wgan-cifar10.png"/></td>
         <td><img src="./assets/wgan-gp-cifar10.png"/></td>
     </tr>
@@ -87,7 +91,7 @@ Implement GANs with PyTorch.
         <th>LSGAN</th>
     </tr>
     <tr>
-        <td><img src="./assets/sngan-cifar10.png"/></td>
+        <td><img src="./assets/sngan/cifar10.png"/></td>
         <td><img src="./assets/sngan-hinge-cifar10.png"/></td>
         <td><img src="./assets/lsgan-cifar10.png"/></td>
     </tr>
@@ -207,6 +211,47 @@ For simplicity, the model architecture in all experiments is SimpleMLP, namely a
 On the Ring8 dataset, it can be clearly seen that all the generated data gather to only one of the 8 modes.
 
 In the MNIST case, the generated images eventually collapse to 1.
+
+
+
+### GAN + R1 regularization
+
+<table style="text-align: center">
+    <tr>
+        <th>200 steps</th>
+        <th>400 steps</th>
+        <th>600 steps</th>
+        <th>800 steps</th>
+        <th>5000 steps</th>
+    </tr>
+    <tr>
+        <td><img src="./assets/gan-r1reg/ring8/step000199.png" ></td>
+        <td><img src="./assets/gan-r1reg/ring8/step000399.png" ></td>
+        <td><img src="./assets/gan-r1reg/ring8/step000599.png" ></td>
+        <td><img src="./assets/gan-r1reg/ring8/step000799.png" ></td>
+        <td><img src="./assets/gan-r1reg/ring8/step004999.png" ></td>
+    </tr>
+</table>
+
+
+<table style="text-align: center">
+    <tr>
+        <th>1000 steps</th>
+        <th>3000 steps</th>
+        <th>5000 steps</th>
+        <th>7000 steps</th>
+        <th>9000 steps</th>
+    </tr>
+    <tr>
+        <td><img src="./assets/gan-r1reg/mnist/step000999.png" ></td>
+        <td><img src="./assets/gan-r1reg/mnist/step002999.png" ></td>
+        <td><img src="./assets/gan-r1reg/mnist/step004999.png" ></td>
+        <td><img src="./assets/gan-r1reg/mnist/step006999.png" ></td>
+        <td><img src="./assets/gan-r1reg/mnist/step008999.png" ></td>
+    </tr>
+</table>
+
+R1 regularization, a technique to stabilize the training process of GANs, can prevent mode collapse in vanilla GAN as well.
 
 
 
@@ -380,47 +425,6 @@ Note: Contrary to the claim in the paper, I found that LSGAN w/o batch normaliza
 
 
 
-### GAN + R1 regularization
-
-<table style="text-align: center">
-    <tr>
-        <th>200 steps</th>
-        <th>400 steps</th>
-        <th>600 steps</th>
-        <th>800 steps</th>
-        <th>5000 steps</th>
-    </tr>
-    <tr>
-        <td><img src="./assets/gan-r1reg/ring8/step000199.png" ></td>
-        <td><img src="./assets/gan-r1reg/ring8/step000399.png" ></td>
-        <td><img src="./assets/gan-r1reg/ring8/step000599.png" ></td>
-        <td><img src="./assets/gan-r1reg/ring8/step000799.png" ></td>
-        <td><img src="./assets/gan-r1reg/ring8/step004999.png" ></td>
-    </tr>
-</table>
-
-<table style="text-align: center">
-    <tr>
-        <th>1000 steps</th>
-        <th>3000 steps</th>
-        <th>5000 steps</th>
-        <th>7000 steps</th>
-        <th>9000 steps</th>
-    </tr>
-    <tr>
-        <td><img src="./assets/gan-r1reg/mnist/step000999.png" ></td>
-        <td><img src="./assets/gan-r1reg/mnist/step002999.png" ></td>
-        <td><img src="./assets/gan-r1reg/mnist/step004999.png" ></td>
-        <td><img src="./assets/gan-r1reg/mnist/step006999.png" ></td>
-        <td><img src="./assets/gan-r1reg/mnist/step008999.png" ></td>
-    </tr>
-</table>
-
-
-R1 regularization, a technique to stabilize the training process of GANs, can prevent mode collapse in vanilla GAN as well.
-
-
-
 ## Run the code
 
 
@@ -430,13 +434,13 @@ R1 regularization, a technique to stabilize the training process of GANs, can pr
 For GAN, WGAN-GP, SNGAN, LSGAN:
 
 ```shell
-accelerate-launch train.py -c ./configs/xxx.yaml
+accelerate-launch scripts/train.py -c ./configs/xxx.yaml
 ```
 
 For WGAN (weight clipping):
 
-```python
-accelerate-launch train_wgan.py -c ./configs/wgan_xxx.yaml
+```shell
+accelerate-launch scripts/train_wgan.py -c ./configs/wgan_xxx.yaml
 ```
 
 
@@ -446,20 +450,22 @@ accelerate-launch train_wgan.py -c ./configs/wgan_xxx.yaml
 **Unconditional**:
 
 ```shell
-accelerate-launch sample.py -c ./configs/xxx.yaml \
-                            --weights /path/to/saved/ckpt/model.pt \
-                            --n_samples N_SAMPLES \
-                            --save_dir SAVE_DIR
+accelerate-launch scripts/sample.py \
+    -c ./configs/xxx.yaml \
+    --weights /path/to/saved/ckpt/model.pt \
+    --n_samples N_SAMPLES \
+    --save_dir SAVE_DIR
 ```
 
 **Conditioned on class labels**:
 
 ```shell
-accelerate-launch sample_cond.py -c ./configs/xxx.yaml \
-                                 --weights /path/to/saved/ckpt/model.pt \
-                                 --n_classes N_CLASSES \
-                                 --n_samples_per_class N_SAMPLES_PER_CLASS \
-                                 --save_dir SAVE_DIR
+accelerate-launch scripts/sample_cond.py \
+    -c ./configs/xxx.yaml \
+    --weights /path/to/saved/ckpt/model.pt \
+    --n_classes N_CLASSES \
+    --n_samples_per_class N_SAMPLES_PER_CLASS \
+    --save_dir SAVE_DIR
 ```
 
 

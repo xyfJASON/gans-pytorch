@@ -8,20 +8,29 @@ Implement GANs with PyTorch.
 
 **Unconditional image generation (CIFAR-10)**:
 
-- [x] GAN (vanilla GAN)
-- [x] DCGAN
+- [x] DCGAN (vanilla GAN)
+- [x] DCGAN + R1 regularization
 - [x] WGAN
 - [x] WGAN-GP
 - [x] SNGAN
+- [ ] LSGAN
 - [ ] SAGAN
-- [x] LSGAN
-- [ ] VEEGAN
 
 **Conditional image generation (CIFAR-10)**:
 
 - [x] CGAN
 - [ ] ACGAN
 - [ ] SNGAN-projection
+
+**Mode Collapse Study (Ring8, MNIST)**:
+
+- [x] GAN (vanilla GAN)
+- [x] GAN + R1 regularization
+- [x] WGAN
+- [x] WGAN-GP
+- [x] SNGAN
+- [x] LSGAN
+- [ ] VEEGAN
 
 <br/>
 
@@ -46,9 +55,8 @@ Implement GANs with PyTorch.
 
 - For simplicity, the network architecture in all experiments is SimpleCNN, namely a stack of `nn.Conv2d` or `nn.ConvTranspose2d` layers. The results can be improved by adding more parameters and using advanced architectures (e.g., residual connections), but I decide to use the simplest setup here.
 
-- All models except LSGAN are trained for 40k generator update steps. However, the optimizers and learning rates are different for each model, so some models may not reach their optimal performance.
+- All models except LSGAN are trained for 40k generator update steps. However, the optimizers and learning rates are not optimized for each model, so some models may not reach their optimal performance.
 
-  LSGAN is early-stopped at 30k steps because I found the image quality drops between 30k-40k steps.
 
 
 
@@ -58,10 +66,10 @@ Implement GANs with PyTorch.
 | :------------------: | :-----: | :---------------: |
 |        DCGAN         | 24.7311 |  7.0339 ± 0.0861  |
 |    DCGAN + R1 reg    | 24.1535 |  7.0188 ± 0.1089  |
-|         WGAN         | 51.0953 |  5.5291 ± 0.0621  |
-|       WGAN-GP        | 31.8783 |  6.7391 ± 0.0814  |
+|         WGAN         | 49.9169 |  5.6852 ± 0.0649  |
+|       WGAN-GP        | 28.7963 |  6.7241 ± 0.0784  |
 | SNGAN (vanilla loss) | 24.9151 |  6.8838 ± 0.0667  |
-|  SNGAN (hinge loss)  | 28.7972 |  6.8365 ± 0.0787  |
+|  SNGAN (hinge loss)  | 28.5197 |  6.7429 ± 0.0818  |
 |        LSGAN         | 35.2344 |  6.3496 ± 0.0748  |
 |        SAGAN         |         |                   |
 
@@ -82,8 +90,8 @@ Implement GANs with PyTorch.
     <tr>
         <td><img src="./assets/gan/cifar10.png"/></td>
         <td><img src="./assets/gan-r1reg/cifar10.png"/></td>
-        <td><img src="./assets/wgan-cifar10.png"/></td>
-        <td><img src="./assets/wgan-gp-cifar10.png"/></td>
+        <td><img src="./assets/wgan/cifar10.png"/></td>
+        <td><img src="./assets/wgan-gp/cifar10.png"/></td>
     </tr>
     <tr>
         <th>SNGAN (vanilla loss)</th>
@@ -92,10 +100,11 @@ Implement GANs with PyTorch.
     </tr>
     <tr>
         <td><img src="./assets/sngan/cifar10.png"/></td>
-        <td><img src="./assets/sngan-hinge-cifar10.png"/></td>
+        <td><img src="./assets/sngan/hinge-cifar10.png"/></td>
         <td><img src="./assets/lsgan-cifar10.png"/></td>
     </tr>
 </table>
+
 
 
 
@@ -170,9 +179,9 @@ Mode collapse is a notorious problem in GANs, where the model can only generate 
 
 For simplicity, the model architecture in all experiments is SimpleMLP, namely a stack of `nn.Linear` layers, thus the quality of generated MNIST image may not be so good. However, this section aims to demonstrate the mode collapse problem rather than to achieve the best image quality.
 
+<br/>
 
-
-### GAN
+**GAN**
 
 <table style="text-align: center">
     <tr>
@@ -212,9 +221,9 @@ On the Ring8 dataset, it can be clearly seen that all the generated data gather 
 
 In the MNIST case, the generated images eventually collapse to 1.
 
+<br/>
 
-
-### GAN + R1 regularization
+**GAN + R1 regularization**
 
 <table style="text-align: center">
     <tr>
@@ -232,7 +241,6 @@ In the MNIST case, the generated images eventually collapse to 1.
         <td><img src="./assets/gan-r1reg/ring8/step004999.png" ></td>
     </tr>
 </table>
-
 
 <table style="text-align: center">
     <tr>
@@ -253,9 +261,9 @@ In the MNIST case, the generated images eventually collapse to 1.
 
 R1 regularization, a technique to stabilize the training process of GANs, can prevent mode collapse in vanilla GAN as well.
 
+<br/>
 
-
-### WGAN
+**WGAN**
 
 <table style="text-align: center">
     <tr>
@@ -293,9 +301,9 @@ R1 regularization, a technique to stabilize the training process of GANs, can pr
 
 WGAN indeed resolves the mode collapse problem, but converges much slower due to weight clipping.
 
+<br/>
 
-
-### WGAN-GP
+**WGAN-GP**
 
 <table style="text-align: center">
     <tr>
@@ -339,9 +347,9 @@ The pathological weights distribution in WGAN's discriminator does not appear in
     <img src="./assets/wgan_stats.png" width=40% />
     <img src="./assets/wgan_gp_stats.png" width=40% />
 </p>
+<br/>
 
-
-### SNGAN
+**SNGAN**
 
 <table style="text-align: center">
     <tr>
@@ -381,9 +389,9 @@ Note: The above SNGAN is trained with the vanilla GAN loss instead of the hinge 
 
 SNGAN uses spectral normalization to control the Lipschitz constant of the discriminator. Even with the vanilla GAN loss, SNGAN can avoid mode collapse problem.
 
+<br/>
 
-
-### LSGAN
+**LSGAN**
 
 <table style="text-align: center">
     <tr>

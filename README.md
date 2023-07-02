@@ -13,7 +13,7 @@ Implement GANs with PyTorch.
 - [x] WGAN
 - [x] WGAN-GP
 - [x] SNGAN
-- [ ] LSGAN
+- [x] LSGAN
 - [ ] SAGAN
 
 **Conditional image generation (CIFAR-10)**:
@@ -70,7 +70,7 @@ Implement GANs with PyTorch.
 |       WGAN-GP        | 28.7963 |  6.7241 ± 0.0784  |
 | SNGAN (vanilla loss) | 24.9151 |  6.8838 ± 0.0667  |
 |  SNGAN (hinge loss)  | 28.5197 |  6.7429 ± 0.0818  |
-|        LSGAN         | 35.2344 |  6.3496 ± 0.0748  |
+|        LSGAN         | 28.4850 |  6.7465 ± 0.0911  |
 |        SAGAN         |         |                   |
 
 - The FID is calculated between 50k generated samples and the CIFAR-10 training split (50k images).
@@ -101,12 +101,9 @@ Implement GANs with PyTorch.
     <tr>
         <td><img src="./assets/sngan/cifar10.png"/></td>
         <td><img src="./assets/sngan/hinge-cifar10.png"/></td>
-        <td><img src="./assets/lsgan-cifar10.png"/></td>
+        <td><img src="./assets/lsgan/cifar10.png"/></td>
     </tr>
 </table>
-
-
-
 
 <br/>
 
@@ -164,7 +161,6 @@ Implement GANs with PyTorch.
         <td><img src="./assets/sngan-proj-cifar10.png"/></td>
     </tr>
 </table>
-
 
 <br/>
 

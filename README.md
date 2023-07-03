@@ -22,6 +22,10 @@ Implement GANs with PyTorch.
 - [ ] ACGAN
 - [ ] SNGAN-projection
 
+**Unsupervised decomposition (MNIST)**:
+
+- [x] InfoGAN
+
 **Mode Collapse Study (Ring8, MNIST)**:
 
 - [x] GAN (vanilla GAN)
@@ -161,6 +165,23 @@ Implement GANs with PyTorch.
         <td><img src="./assets/sngan-proj-cifar10.png"/></td>
     </tr>
 </table>
+
+<br/>
+
+
+
+## Unsupervised decomposition
+
+**InfoGAN**
+
+<p align="center">
+  <img src="./assets/infogan/disc.png" width=35% />
+  <img src="./assets/infogan/cont.png" width=35% />
+</p>
+
+- Left: change the discrete latent variable, which corresponds to the digit type.
+- Right: change one of the continuous latent variable from -1 to 1. However, the decomposition is not clear.
+- Note: I found that batch normalization layers play an important role in InfoGAN. Without BN layers, the discrete latent variable tends to have a clear meaning as shown above, while the continuous variables have little effect. On the contrary, with BN layers, it's harder for the discrete variable to catch the digit type information and easier for continuous ones to find rotation in digits.
 
 <br/>
 
@@ -445,6 +466,12 @@ For WGAN (weight clipping):
 
 ```shell
 accelerate-launch scripts/train_wgan.py -c ./configs/wgan_xxx.yaml
+```
+
+For InfoGAN:
+
+```shell
+accelerate-launch scripts/train_infogan.py -c ./configs/infogan_mnist.yaml
 ```
 
 

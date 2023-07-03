@@ -29,9 +29,15 @@ class VanillaGANLoss(nn.Module):
         self.lambda_r1_reg = lambda_r1_reg
         self.bce_with_logits = nn.BCEWithLogitsLoss()
 
+    @staticmethod
+    def _discard_extras(x):
+        if isinstance(x, (tuple, list)):
+            return x[0]
+        return x
+
     def r1_reg(self, real_data: Tensor, *args):
         real_data.requires_grad_()
-        real_score = self.discriminator(real_data, *args)
+        real_score = self._discard_extras(self.discriminator(real_data, *args))
         gradients = torch.autograd.grad(
             outputs=real_score, inputs=real_data,
             grad_outputs=torch.ones_like(real_score),
@@ -41,12 +47,12 @@ class VanillaGANLoss(nn.Module):
         return gradients.pow(2).sum(1).mean()
 
     def forward_G(self, fake_data: Tensor, *args):
-        fake_score = self.discriminator(fake_data, *args)
+        fake_score = self._discard_extras(self.discriminator(fake_data, *args))
         return self.bce_with_logits(fake_score, torch.ones_like(fake_score))
 
     def forward_D(self, fake_data: Tensor, real_data: Tensor, *args):
-        fake_score = self.discriminator(fake_data.detach(), *args)
-        real_score = self.discriminator(real_data, *args)
+        fake_score = self._discard_extras(self.discriminator(fake_data.detach(), *args))
+        real_score = self._discard_extras(self.discriminator(real_data, *args))
         loss = (self.bce_with_logits(fake_score, torch.zeros_like(fake_score)) +
                 self.bce_with_logits(real_score, torch.ones_like(real_score))) / 2
         if self.lambda_r1_reg > 0.0:

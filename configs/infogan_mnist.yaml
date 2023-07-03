@@ -1,0 +1,60 @@
+seed: 5678
+
+data:
+  name: MNIST
+  dataroot: /data/MNIST/
+  img_size: 32
+  img_channels: 1
+
+dataloader:
+  num_workers: 4
+  pin_memory: true
+  prefetch_factor: 2
+
+G:
+  target: models.simple_cnn_infogan.GeneratorInfoGAN
+  params:
+    z_dim: 100
+    dim: 64
+    dim_mults: [4, 2, 1]
+    dim_c_disc: 10
+    dim_c_cont: 2
+    out_dim: 1
+    with_bn: false
+    with_tanh: true
+
+D:
+  target: models.simple_cnn_infogan.DiscriminatorInfoGAN
+  params:
+    in_dim: 1
+    dim: 64
+    dim_mults: [1, 2, 4]
+    dim_c_disc: 10
+    dim_c_cont: 2
+    with_bn: false
+
+train:
+  n_steps: 10000
+  batch_size: 256
+  d_iters: 5
+  resume: ~
+  print_freq: 500
+  save_freq: 10000
+  sample_freq: 1000
+
+  loss_fn:
+    target: losses.vanilla_gan_loss.VanillaGANLoss
+    params:
+      lambda_r1_reg: 10.0
+
+  lambda_cond_disc: 1.
+  lambda_cond_cont: 1.
+
+  optim_G:
+    target: torch.optim.Adam
+    params:
+      lr: 0.0003
+  optim_D:
+    target: torch.optim.Adam
+    params:
+      lr: 0.0003

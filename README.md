@@ -14,7 +14,6 @@ Implement GANs with PyTorch.
 - [x] WGAN-GP
 - [x] SNGAN
 - [x] LSGAN
-- [ ] SAGAN
 
 **Conditional image generation (CIFAR-10)**:
 
@@ -34,7 +33,7 @@ Implement GANs with PyTorch.
 - [x] WGAN-GP
 - [x] SNGAN
 - [x] LSGAN
-- [ ] VEEGAN
+- [x] VEEGAN
 
 <br/>
 
@@ -44,16 +43,15 @@ Implement GANs with PyTorch.
 
 **Notes**:
 
-|     Model      |            G. Arch.            |    D. Arch.    |                Loss                |                      Configs                      |               Additional args               |
-| :------------: | :----------------------------: | :------------: | :--------------------------------: | :-----------------------------------------------: | :-----------------------------------------: |
-|     DCGAN      |           SimpleCNN            |   SimpleCNN    |              Vanilla               |     [config file](./configs/gan_cifar10.yaml)     |                                             |
-| DCGAN + R1 reg |           SimpleCNN            |   SimpleCNN    |   Vanilla<br/>R1 regularization    |     [config file](./configs/gan_cifar10.yaml)     | `--train.loss_fn.params.lambda_r1_reg 10.0` |
-|      WGAN      |           SimpleCNN            |   SimpleCNN    | Wasserstein<br/>(weight clipping)  |    [config file](./configs/wgan_cifar10.yaml)     |                                             |
-|    WGAN-GP     |           SimpleCNN            |   SimpleCNN    | Wasserstein<br/>(gradient penalty) |   [config file](./configs/wgan_gp_cifar10.yaml)   |                                             |
-|     SNGAN      |           SimpleCNN            | SimpleCNN (SN) |              Vanilla               |    [config file](./configs/sngan_cifar10.yaml)    |                                             |
-|     SNGAN      |           SimpleCNN            | SimpleCNN (SN) |               Hinge                | [config file](./configs/sngan_hinge_cifar10.yaml) |                                             |
-|     LSGAN      |           SimpleCNN            |   SimpleCNN    |            Least Sqaure            |    [config file](./configs/lsgan_cifar10.yaml)    |                                             |
-|     SAGAN      | SimpleCNN (SN)<br/>+ Attention |   SimpleCNN    |               Hinge                |    [config file](./configs/sagan_cifar10.yaml)    |                                             |
+|     Model      | G. Arch.  |    D. Arch.    |                Loss                |                      Configs                      |               Additional args               |
+| :------------: | :-------: | :------------: | :--------------------------------: | :-----------------------------------------------: | :-----------------------------------------: |
+|     DCGAN      | SimpleCNN |   SimpleCNN    |              Vanilla               |     [config file](./configs/gan_cifar10.yaml)     |                                             |
+| DCGAN + R1 reg | SimpleCNN |   SimpleCNN    |   Vanilla<br/>R1 regularization    |     [config file](./configs/gan_cifar10.yaml)     | `--train.loss_fn.params.lambda_r1_reg 10.0` |
+|      WGAN      | SimpleCNN |   SimpleCNN    | Wasserstein<br/>(weight clipping)  |    [config file](./configs/wgan_cifar10.yaml)     |                                             |
+|    WGAN-GP     | SimpleCNN |   SimpleCNN    | Wasserstein<br/>(gradient penalty) |   [config file](./configs/wgan_gp_cifar10.yaml)   |                                             |
+|     SNGAN      | SimpleCNN | SimpleCNN (SN) |              Vanilla               |    [config file](./configs/sngan_cifar10.yaml)    |                                             |
+|     SNGAN      | SimpleCNN | SimpleCNN (SN) |               Hinge                | [config file](./configs/sngan_hinge_cifar10.yaml) |                                             |
+|     LSGAN      | SimpleCNN |   SimpleCNN    |            Least Sqaure            |    [config file](./configs/lsgan_cifar10.yaml)    |                                             |
 
 - SN stands for "Spectral Normalization".
 
@@ -75,7 +73,6 @@ Implement GANs with PyTorch.
 | SNGAN (vanilla loss) | 24.9151 |  6.8838 ± 0.0667  |
 |  SNGAN (hinge loss)  | 28.5197 |  6.7429 ± 0.0818  |
 |        LSGAN         | 28.4850 |  6.7465 ± 0.0911  |
-|        SAGAN         |         |                   |
 
 - The FID is calculated between 50k generated samples and the CIFAR-10 training split (50k images).
 - The Inception Score is calculated on 50k generated samples.
@@ -448,6 +445,46 @@ LSGAN uses MSE instead of Cross-Entropy as the loss function to overcome the van
 
 Note: Contrary to the claim in the paper, I found that LSGAN w/o batch normalization does not converge on MNIST.
 
+<br/>
+
+**VEEGAN**
+
+<table style="text-align: center">
+    <tr>
+        <th>200 steps</th>
+        <th>400 steps</th>
+        <th>600 steps</th>
+        <th>800 steps</th>
+        <th>5000 steps</th>
+    </tr>
+    <tr>
+        <td><img src="./assets/veegan/ring8/step000199.png" ></td>
+        <td><img src="./assets/veegan/ring8/step000399.png" ></td>
+        <td><img src="./assets/veegan/ring8/step000599.png" ></td>
+        <td><img src="./assets/veegan/ring8/step000799.png" ></td>
+        <td><img src="./assets/veegan/ring8/step004999.png" ></td>
+    </tr>
+</table>
+
+<table style="text-align: center">
+    <tr>
+        <th>1000 steps</th>
+        <th>3000 steps</th>
+        <th>5000 steps</th>
+        <th>7000 steps</th>
+        <th>10000 steps</th>
+    </tr>
+    <tr>
+        <td><img src="./assets/veegan/mnist/step000999.png" ></td>
+        <td><img src="./assets/veegan/mnist/step002999.png" ></td>
+        <td><img src="./assets/veegan/mnist/step004999.png" ></td>
+        <td><img src="./assets/veegan/mnist/step006999.png" ></td>
+        <td><img src="./assets/veegan/mnist/step009999.png" ></td>
+    </tr>
+</table>
+
+VEEGAN uses an extra network to reconstruct the latent codes from the generated data.
+
 
 
 ## Run the code
@@ -462,16 +499,10 @@ For GAN, WGAN-GP, SNGAN, LSGAN:
 accelerate-launch scripts/train.py -c ./configs/xxx.yaml
 ```
 
-For WGAN (weight clipping):
+For WGAN (weight clipping), InfoGAN and VEEGAN, use the scripts with corresponding name instead:
 
 ```shell
-accelerate-launch scripts/train_wgan.py -c ./configs/wgan_xxx.yaml
-```
-
-For InfoGAN:
-
-```shell
-accelerate-launch scripts/train_infogan.py -c ./configs/infogan_mnist.yaml
+accelerate-launch scripts/train_xxxgan.py -c ./configs/xxx.yaml
 ```
 
 

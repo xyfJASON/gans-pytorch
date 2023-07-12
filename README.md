@@ -130,7 +130,7 @@ Implement GANs with PyTorch.
 
 |   Model    |  FID ↓  |                         Intra FID ↓                          | Inception Score ↑ |
 | :--------: | :-----: | :----------------------------------------------------------: | :---------------: |
-|    CGAN    | 22.7190 | 44.0456<br/>            <details><summary>Details</summary><p>Class 0: 47.4655</p><p>Class 1: 36.7704</p><p>Class 2: 50.4781</p><p>Class 3: 47.7560</p><p>Class 4: 38.8245</p><p>Class 5: 58.8605</p><p>Class 6: 36.9275</p><p>Class 7: 43.9562</p><p>Class 8: 38.1152</p><p>Class 9: 41.3024</p></details> |  7.6483 ± 0.0805  |
+|    CGAN    | 25.4999 | 47.7334<br/>            <details><summary>Details</summary><p>Class 0: 53.4163</p><p>Class 1: 44.3311</p><p>Class 2: 53.1971</p><p>Class 3: 52.2223</p><p>Class 4: 36.9577</p><p>Class 5: 65.0020</p><p>Class 6: 37.9598</p><p>Class 7: 48.3610</p><p>Class 8: 41.8075</p><p>Class 9: 44.0796</p></details> |  7.5597 ± 0.0909  |
 | CGAN (cBN) | 23.7573 | 45.7831<br/>                <details><summary>Details</summary><p>Class 0: 50.4719</p><p>Class 1: 41.0282</p><p>Class 2: 51.2398</p><p>Class 3: 49.0277</p><p>Class 4: 34.7383</p><p>Class 5: 62.6589</p><p>Class 6: 39.2291</p><p>Class 7: 43.1215</p><p>Class 8: 44.1361</p><p>Class 9: 42.1792</p></details> |  7.8448 ± 0.0574  |
 |            |         |                                                              |                   |
 |            |         |                                                              |                   |

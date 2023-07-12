@@ -1,6 +1,11 @@
 import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import math
+import tqdm
 import argparse
+import tempfile
 from yacs.config import CfgNode as CN
 
 import torch
@@ -8,11 +13,12 @@ from torch.utils.data import DataLoader
 from torchvision.utils import save_image
 
 import accelerate
+import torch_fidelity
 
-from losses import VanillaGANLoss
 from utils.logger import StatusTracker, get_logger
 from utils.data import get_dataset, get_data_generator
-from utils.misc import get_time_str, create_exp_dir, check_freq, find_resume_checkpoint, instantiate_from_config
+from utils.misc import get_time_str, check_freq, amortize
+from utils.misc import create_exp_dir, find_resume_checkpoint, instantiate_from_config
 
 
 def get_parser():
@@ -102,10 +108,10 @@ def train(args, cfg):
     optimizer_G = instantiate_from_config(cfg.train.optim_G)
     cfg.train.optim_D.params.update({'params': D.parameters()})
     optimizer_D = instantiate_from_config(cfg.train.optim_D)
-    step = 0
+    step, best_fid = 0, math.inf
 
     def load_ckpt(ckpt_path: str):
-        nonlocal step
+        nonlocal step, best_fid
         # load models
         ckpt_model = torch.load(os.path.join(ckpt_path, 'model.pt'), map_location='cpu')
         G.load_state_dict(ckpt_model['G'])
@@ -119,6 +125,7 @@ def train(args, cfg):
         # load meta information
         ckpt_meta = torch.load(os.path.join(ckpt_path, 'meta.pt'), map_location='cpu')
         step = ckpt_meta['step'] + 1
+        best_fid = ckpt_meta['best_fid']
 
     @accelerator.on_main_process
     def save_ckpt(save_path: str):
@@ -134,7 +141,9 @@ def train(args, cfg):
             optimizer_D=optimizer_D.state_dict(),
         ), os.path.join(save_path, 'optimizer.pt'))
         # save meta information
-        accelerator.save(dict(step=step), os.path.join(save_path, 'meta.pt'))
+        accelerator.save(dict(
+            step=step, best_fid=best_fid,
+        ), os.path.join(save_path, 'meta.pt'))
 
     # RESUME TRAINING
     if cfg.train.resume is not None:
@@ -142,13 +151,16 @@ def train(args, cfg):
         logger.info(f'Resume from {resume_path}')
         load_ckpt(resume_path)
         logger.info(f'Restart training at step {step}')
+        if best_fid != math.inf:
+            logger.info(f'Best fid so far: {best_fid}')
 
     # PREPARE FOR DISTRIBUTED MODE AND MIXED PRECISION
     G, D, optimizer_G, optimizer_D, train_loader = \
         accelerator.prepare(G, D, optimizer_G, optimizer_D, train_loader)  # type: ignore
 
     # DEFINE LOSS
-    vanilla_gan_loss = VanillaGANLoss(discriminator=D)
+    cfg.train.loss_fn.params.update({'discriminator': D})
+    loss_fn = instantiate_from_config(cfg.train.loss_fn)
 
     accelerator.wait_for_everyone()
 
@@ -157,17 +169,17 @@ def train(args, cfg):
         X = X.float(); y = y.long()
         z = torch.randn((X.shape[0], cfg.G.params.z_dim), device=device)
         fake = G(z, y).detach()
-        loss = vanilla_gan_loss.forward_D(fake, X, y)
+        loss = loss_fn.forward_D(fake, X, y)
         accelerator.backward(loss)
         optimizer_D.step()
         return dict(loss_D=loss.item(), lr_D=optimizer_D.param_groups[0]['lr'])
 
-    def run_step_G(X, y):
+    def run_step_G(batch_size):
         optimizer_G.zero_grad()
-        X = X.float(); y = y.long()
-        z = torch.randn((X.shape[0], cfg.G.params.z_dim), device=device)
+        z = torch.randn((batch_size, cfg.G.params.z_dim), device=device)
+        y = torch.randint(0, cfg.data.n_classes, (batch_size, ), dtype=torch.long, device=device)
         fake = G(z, y)
-        loss = vanilla_gan_loss.forward_G(fake, y)
+        loss = loss_fn.forward_G(fake, y)
         accelerator.backward(loss)
         optimizer_G.step()
         return dict(loss_G=loss.item(), lr_G=optimizer_G.param_groups[0]['lr'])
@@ -186,6 +198,36 @@ def train(args, cfg):
         all_samples = torch.stack(all_samples, dim=1).view(-1, *img_shape)
         save_image(all_samples, savepath, nrow=min(10, cfg.data.n_classes), normalize=True, value_range=(-1, 1))
 
+    @accelerator.on_main_process
+    @torch.no_grad()
+    def evaluate():
+        assert cfg.data.name == 'CIFAR-10', 'only supports evaluating on CIFAR-10 for now'
+        unwrapped_G = accelerator.unwrap_model(G)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            for c in range(10):
+                idx = 0
+                for n in tqdm.tqdm(
+                        amortize(5000, batch_size_per_process), leave=False,
+                        desc=f'Evaluating (class {c}) (temporarily save samples to {temp_dir})',
+                ):
+                    z = torch.randn((n, cfg.G.params.z_dim), device=device)
+                    y = torch.full((n, ), c, dtype=torch.long, device=device)
+                    samples = unwrapped_G(z, y).cpu()
+                    for x in samples:
+                        save_image(
+                            x, os.path.join(temp_dir, f'c{c}_{idx}.png'),
+                            nrow=1, normalize=True, value_range=(-1, 1),
+                        )
+                        idx += 1
+            out = torch_fidelity.calculate_metrics(
+                input1=temp_dir,
+                input2='cifar10-train',
+                cuda=True,
+                fid=True,
+                verbose=False,
+            )
+        return {'fid': out['frechet_inception_distance']}
+
     # START TRAINING
     logger.info('Start training...')
     train_data_generator = get_data_generator(
@@ -194,19 +236,32 @@ def train(args, cfg):
         with_tqdm=True,
     )
     while step < cfg.train.n_steps:
-        # get a batch of data
-        batch = next(train_data_generator)
-        assert isinstance(batch, (list, tuple)) and len(batch) == 2
-        # run a step
         G.train(); D.train()
-        train_status = run_step_D(*batch)
+
+        # run multiple steps for discriminator
+        for i in range(cfg.train.d_iters):
+            batch = next(train_data_generator)
+            assert isinstance(batch, (list, tuple)) and len(batch) == 2
+            train_status = run_step_D(*batch)
+            if i == cfg.train.d_iters - 1:
+                status_tracker.track_status('Train', train_status, step)
+            accelerator.wait_for_everyone()
+
+        # run a step for generator
+        train_status = run_step_G(batch_size_per_process)
         status_tracker.track_status('Train', train_status, step)
-        if (step + 1) % cfg.train.d_iters == 0:
-            train_status = run_step_G(*batch)
-            status_tracker.track_status('Train', train_status, step)
         accelerator.wait_for_everyone()
 
         G.eval(); D.eval()
+        # evaluate
+        if check_freq(cfg.train.get('eval_freq', 0), step):
+            eval_status = evaluate()
+            status_tracker.track_status('Eval', eval_status, step)
+            # save the best model
+            if eval_status['fid'] < best_fid:
+                best_fid = eval_status['fid']
+                save_ckpt(os.path.join(exp_dir, 'ckpt', 'best'))
+            accelerator.wait_for_everyone()
         # save checkpoint
         if check_freq(cfg.train.save_freq, step):
             save_ckpt(os.path.join(exp_dir, 'ckpt', f'step{step:0>6d}'))
@@ -221,6 +276,8 @@ def train(args, cfg):
         save_ckpt(os.path.join(exp_dir, 'ckpt', f'step{step-1:0>6d}'))
     accelerator.wait_for_everyone()
     status_tracker.close()
+    if best_fid != math.inf:
+        logger.info(f'Best FID score: {best_fid}')
     logger.info('End of training')
 
 

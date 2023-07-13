@@ -13,10 +13,10 @@ dataloader:
   prefetch_factor: 2
 
 G:
-  target: models.simple_cnn_cond.GeneratorCBN
+  target: models.simple_cnn_cond.GeneratorConditionalCBN
   params:
-    n_classes: 10
     z_dim: 100
+    n_classes: 10
     dim: 256
     dim_mults: [4, 2, 1]
     out_dim: 3
@@ -24,7 +24,7 @@ G:
     with_tanh: true
 
 D:
-  target: models.simple_cnn_cond.Discriminator
+  target: models.simple_cnn_cond.DiscriminatorConditional
   params:
     n_classes: 10
     in_dim: 3
@@ -33,22 +33,28 @@ D:
     with_bn: true
 
 train:
-  n_steps: 200000
+  n_steps: 40000
   batch_size: 512
   d_iters: 5
   resume: ~
-  print_freq: 500
+  print_freq: 100
   save_freq: 10000
   sample_freq: 1000
+  eval_freq: 1000
   n_samples_per_class: 6
+
+  loss_fn:
+    target: losses.vanilla_gan_loss.VanillaGANLoss
+    params:
+      lambda_r1_reg: 0.0
 
   optim_G:
     target: torch.optim.Adam
     params:
-      lr: 0.0002
+      lr: 0.0008
       betas: [0.5, 0.999]
   optim_D:
     target: torch.optim.Adam
     params:
-      lr: 0.0002
+      lr: 0.0008
       betas: [0.5, 0.999]

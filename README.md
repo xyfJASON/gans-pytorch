@@ -19,7 +19,6 @@ Implement GANs with PyTorch.
 
 - [x] CGAN
 - [x] ACGAN
-- [ ] SNGAN-projection
 
 **Unsupervised decomposition (MNIST)**:
 
@@ -114,12 +113,11 @@ Implement GANs with PyTorch.
 
 **Notes**:
 
-|      Model       | G. Arch.  |    D. Arch.    | G. cond. | D. cond. |  Loss   |                  Configs & Args                  |
-| :--------------: | :-------: | :------------: | :------: | :------: | :-----: | :----------------------------------------------: |
-|       CGAN       | SimpleCNN |   SimpleCNN    |  concat  |  concat  | Vanilla |    [config file](./configs/cgan_cifar10.yaml)    |
-|    CGAN (cBN)    | SimpleCNN |   SimpleCNN    |   cBN    |  concat  | Vanilla |  [config file](./configs/cgan_cbn_cifar10.yaml)  |
-|      ACGAN       | SimpleCNN |   SimpleCNN    |   cBN    |    AC    | Vanilla |   [config file](./configs/acgan_cifar10.yaml)    |
-| SNGAN-projection | SimpleCNN | SimpleCNN (SN) |   cBN    |    PD    |  Hinge  | [config file](./configs/sngan_proj_cifar10.yaml) |
+|   Model    | G. Arch.  | D. Arch.  | G. cond. | D. cond. |  Loss   |                 Configs & Args                 |
+| :--------: | :-------: | :-------: | :------: | :------: | :-----: | :--------------------------------------------: |
+|    CGAN    | SimpleCNN | SimpleCNN |  concat  |  concat  | Vanilla |   [config file](./configs/cgan_cifar10.yaml)   |
+| CGAN (cBN) | SimpleCNN | SimpleCNN |   cBN    |  concat  | Vanilla | [config file](./configs/cgan_cbn_cifar10.yaml) |
+|   ACGAN    | SimpleCNN | SimpleCNN |   cBN    |    AC    | Vanilla |  [config file](./configs/acgan_cifar10.yaml)   |
 
 
 - cBN stands for "conditional Batch Normalization"; SN stands for "Spectral Normalization"; AC stands for "Auxiliary Classifier"; PD stands for "Projection Discriminator".
@@ -133,7 +131,6 @@ Implement GANs with PyTorch.
 |    CGAN    | 25.4999 | 47.7334<br/>            <details><summary>Details</summary><p>Class 0: 53.4163</p><p>Class 1: 44.3311</p><p>Class 2: 53.1971</p><p>Class 3: 52.2223</p><p>Class 4: 36.9577</p><p>Class 5: 65.0020</p><p>Class 6: 37.9598</p><p>Class 7: 48.3610</p><p>Class 8: 41.8075</p><p>Class 9: 44.0796</p></details> |  7.5597 ± 0.0909  |
 | CGAN (cBN) | 25.3466 | 47.4136<br/>                <details><summary>Details</summary><p>Class 0: 51.5959</p><p>Class 1: 46.6855</p><p>Class 2: 49.9857</p><p>Class 3: 53.6737</p><p>Class 4: 35.1658</p><p>Class 5: 65.7719</p><p>Class 6: 38.0958</p><p>Class 7: 44.7279</p><p>Class 8: 43.3078</p><p>Class 9: 45.1265</p></details> |  7.7541 ± 0.0944  |
 |   ACGAN    | 19.9154 | 49.9892<br/><details><summary>Details</summary><p>Class 0: 47.3203</p><p>Class 1: 38.6481</p><p>Class 2: 62.5885</p><p>Class 3: 66.2386</p><p>Class 4: 64.5535</p><p>Class 5: 60.7876</p><p>Class 6: 58.9524</p><p>Class 7: 36.8940</p><p>Class 8: 28.5964</p><p>Class 9: 35.3120</p></details> |  7.9903 ± 0.1038  |
-|            |         |                                                              |                   |
 
 
 - The FID is calculated between 50k generated samples (5k for each class) and the CIFAR-10 training split (50k images).
@@ -148,19 +145,15 @@ Implement GANs with PyTorch.
     <tr>
         <th>CGAN</th>
         <th>CGAN (cBN)</th>
+        <th>ACGAN</th>
     </tr>
     <tr>
         <td><img src="./assets/cgan/cifar10.png"/></td>
         <td><img src="./assets/cgan/cifar10-cbn.png"/></td>
-    </tr>
-    <tr>
-        <th>ACGAN</th>
-        <th>SNGAN-Projection</th>
-    </tr>
-    <tr>
         <td><img src="./assets/acgan/cifar10.png"/></td>
     </tr>
 </table>
+
 
 
 <br/>
@@ -499,7 +492,7 @@ For GAN, WGAN-GP, SNGAN, LSGAN:
 accelerate-launch scripts/train.py -c ./configs/xxx.yaml
 ```
 
-For WGAN (weight clipping), InfoGAN and VEEGAN, use the scripts with corresponding name instead:
+For WGAN (weight clipping), InfoGAN, VEEGAN, CGAN and ACGAN, use the scripts with corresponding name instead:
 
 ```shell
 accelerate-launch scripts/train_xxxgan.py -c ./configs/xxx.yaml
@@ -509,7 +502,7 @@ accelerate-launch scripts/train_xxxgan.py -c ./configs/xxx.yaml
 
 ### Sample
 
-**Unconditional**:
+**Unconditional GANs**:
 
 ```shell
 accelerate-launch scripts/sample.py \
@@ -519,7 +512,7 @@ accelerate-launch scripts/sample.py \
     --save_dir SAVE_DIR
 ```
 
-**Conditioned on class labels**:
+**Conditional GANs**:
 
 ```shell
 accelerate-launch scripts/sample_cond.py \

@@ -1,0 +1,59 @@
+seed: 5678
+
+data:
+  name: CIFAR-10
+  dataroot: /data/CIFAR-10/
+  img_size: 32
+  img_channels: 3
+  n_classes: 10
+
+dataloader:
+  num_workers: 4
+  pin_memory: true
+  prefetch_factor: 2
+
+G:
+  target: models.simple_cnn_cond.GeneratorConditionalCBN
+  params:
+    z_dim: 100
+    n_classes: 10
+    dim: 256
+    dim_mults: [4, 2, 1]
+    out_dim: 3
+    with_bn: true
+    with_tanh: true
+
+D:
+  target: models.simple_cnn_cond.DiscriminatorConditionalAC
+  params:
+    n_classes: 10
+    in_dim: 3
+    dim: 256
+    dim_mults: [1, 2, 4]
+    with_bn: true
+
+train:
+  n_steps: 40000
+  batch_size: 512
+  d_iters: 5
+  resume: ~
+  print_freq: 100
+  save_freq: 10000
+  sample_freq: 1000
+  eval_freq: 1000
+  n_samples_per_class: 6
+
+  loss_fn:
+    target: losses.vanilla_gan_loss.VanillaGANWithAuxiliaryClassifierLoss
+    params: {}
+
+  optim_G:
+    target: torch.optim.Adam
+    params:
+      lr: 0.0008
+      betas: [0.5, 0.999]
+  optim_D:
+    target: torch.optim.Adam
+    params:
+      lr: 0.0008
+      betas: [0.5, 0.999]

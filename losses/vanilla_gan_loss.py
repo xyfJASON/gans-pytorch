@@ -80,5 +80,5 @@ class VanillaGANWithAuxiliaryClassifierLoss(nn.Module):
         real_score, real_logits = self.discriminator(real_data)
         loss_disc = (self.bce_with_logits(fake_score, torch.zeros_like(fake_score)) +
                      self.bce_with_logits(real_score, torch.ones_like(real_score))) / 2
-        loss_cls = (self.ce(fake_logits, labels) + self.ce(real_logits, labels)) / 2
+        loss_cls = self.ce(real_logits, labels)
         return loss_disc, loss_cls

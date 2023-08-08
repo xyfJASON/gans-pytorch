@@ -24,7 +24,7 @@ Implement GANs with PyTorch.
 
 - [x] InfoGAN
 
-**Mode Collapse Study (Ring8, MNIST)**:
+**Mode collapse study (Ring8, MNIST)**:
 
 - [x] GAN (vanilla GAN)
 - [x] GAN + R1 regularization
@@ -42,15 +42,15 @@ Implement GANs with PyTorch.
 
 **Notes**:
 
-|     Model      | G. Arch.  |    D. Arch.    |                Loss                |                      Configs                      |               Additional args               |
-| :------------: | :-------: | :------------: | :--------------------------------: | :-----------------------------------------------: | :-----------------------------------------: |
-|     DCGAN      | SimpleCNN |   SimpleCNN    |              Vanilla               |     [config file](./configs/gan_cifar10.yaml)     |                                             |
-| DCGAN + R1 reg | SimpleCNN |   SimpleCNN    |   Vanilla<br/>R1 regularization    |     [config file](./configs/gan_cifar10.yaml)     | `--train.loss_fn.params.lambda_r1_reg 10.0` |
-|      WGAN      | SimpleCNN |   SimpleCNN    | Wasserstein<br/>(weight clipping)  |    [config file](./configs/wgan_cifar10.yaml)     |                                             |
-|    WGAN-GP     | SimpleCNN |   SimpleCNN    | Wasserstein<br/>(gradient penalty) |   [config file](./configs/wgan_gp_cifar10.yaml)   |                                             |
-|     SNGAN      | SimpleCNN | SimpleCNN (SN) |              Vanilla               |    [config file](./configs/sngan_cifar10.yaml)    |                                             |
-|     SNGAN      | SimpleCNN | SimpleCNN (SN) |               Hinge                | [config file](./configs/sngan_hinge_cifar10.yaml) |                                             |
-|     LSGAN      | SimpleCNN |   SimpleCNN    |            Least Sqaure            |    [config file](./configs/lsgan_cifar10.yaml)    |                                             |
+|     Model      | G. Arch.  |    D. Arch.    |                Loss                |                           Configs                            |
+| :------------: | :-------: | :------------: | :--------------------------------: | :----------------------------------------------------------: |
+|     DCGAN      | SimpleCNN |   SimpleCNN    |              Vanilla               |          [config file](./configs/gan_cifar10.yaml)           |
+| DCGAN + R1 reg | SimpleCNN |   SimpleCNN    |   Vanilla<br/>R1 regularization    | [config file](./configs/gan_cifar10.yaml)<br/><details><summary>Additional args</summary>`--train.loss_fn.params.lambda_r1_reg 10.0`</details> |
+|      WGAN      | SimpleCNN |   SimpleCNN    | Wasserstein<br/>(weight clipping)  |          [config file](./configs/wgan_cifar10.yaml)          |
+|    WGAN-GP     | SimpleCNN |   SimpleCNN    | Wasserstein<br/>(gradient penalty) |        [config file](./configs/wgan_gp_cifar10.yaml)         |
+|     SNGAN      | SimpleCNN | SimpleCNN (SN) |              Vanilla               |         [config file](./configs/sngan_cifar10.yaml)          |
+|     SNGAN      | SimpleCNN | SimpleCNN (SN) |               Hinge                |      [config file](./configs/sngan_hinge_cifar10.yaml)       |
+|     LSGAN      | SimpleCNN |   SimpleCNN    |            Least Sqaure            |         [config file](./configs/lsgan_cifar10.yaml)          |
 
 - SN stands for "Spectral Normalization".
 
@@ -160,7 +160,7 @@ Implement GANs with PyTorch.
 
 
 
-## Unsupervised decomposition
+## Unsupervised Decomposition
 
 **InfoGAN**
 
@@ -481,6 +481,12 @@ VEEGAN uses an extra network to reconstruct the latent codes from the generated 
 
 
 ## Run the code
+
+
+
+### Pretrained weights
+
+The checkpoints and training logs are stored in [xyfJASON/GANs-Implementations](https://huggingface.co/xyfJASON/GANs-Implementations/tree/main) on huggingface.
 
 
 

@@ -1,0 +1,9 @@
+tqdm
+yacs
+lpips
+matplotlib
+tensorboard
+torch~=1.13.1
+torchvision~=0.14.1
+accelerate~=0.21.0
+git+https://github.com/toshas/torch-fidelity.git@master#egg=torch-fidelity

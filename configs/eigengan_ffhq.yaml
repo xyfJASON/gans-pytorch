@@ -1,0 +1,61 @@
+seed: 5678
+
+data:
+  name: FFHQ
+  dataroot: ~/data/FFHQ/
+  img_size: 256
+  img_channels: 3
+
+dataloader:
+  num_workers: 16
+  pin_memory: true
+  prefetch_factor: 2
+
+G:
+  target: models.eigengan.Generator
+  params:
+    n_basis: 6
+    noise_dim: 512
+    out_dim: 3
+    dim: 16
+    dim_mults: [32, 16, 8, 4, 2, 1]
+    with_bn: false
+    with_tanh: true
+
+D:
+  target: models.eigengan.Discriminator
+  params:
+    in_dim: 3
+    dim: 16
+    dim_mults: [2, 4, 8, 16, 32, 32]
+    with_bn: false
+
+train:
+  n_steps: 500000
+  batch_size: 64
+
+  resume: ~
+  print_freq: 100
+  save_freq: 10000
+  sample_freq: 1000
+  n_samples: 25
+
+  d_iters: 1
+  ortho_reg: 1.0
+  ema_decay: 0.999
+
+  loss_fn:
+    target: losses.hinge_loss.HingeLoss
+    params:
+      lambda_r1_reg: 10.0
+
+  optim_G:
+    target: torch.optim.Adam
+    params:
+      lr: 0.0001
+      betas: [0.5, 0.999]
+  optim_D:
+    target: torch.optim.Adam
+    params:
+      lr: 0.0001
+      betas: [0.5, 0.999]

@@ -23,6 +23,7 @@ Implement GANs with PyTorch.
 **Unsupervised decomposition (MNIST)**:
 
 - [x] InfoGAN
+- [x] EigenGAN
 
 **Mode collapse study (Ring8, MNIST)**:
 
@@ -57,7 +58,6 @@ Implement GANs with PyTorch.
 - For simplicity, the network architecture in all experiments is SimpleCNN, namely a stack of `nn.Conv2d` or `nn.ConvTranspose2d` layers. The results can be improved by adding more parameters and using advanced architectures (e.g., residual connections), but I decide to use the simplest setup here.
 
 - All models except LSGAN are trained for 40k generator update steps. However, the optimizers and learning rates are not optimized for each model, so some models may not reach their optimal performance.
-
 
 
 
@@ -172,6 +172,18 @@ Implement GANs with PyTorch.
 - Left: change the discrete latent variable, which corresponds to the digit type.
 - Right: change one of the continuous latent variable from -1 to 1. However, the decomposition is not clear.
 - Note: I found that batch normalization layers play an important role in InfoGAN. Without BN layers, the discrete latent variable tends to have a clear meaning as shown above, while the continuous variables have little effect. On the contrary, with BN layers, it's harder for the discrete variable to catch the digit type information and easier for continuous ones to find rotation in digits.
+
+<br/>
+
+**EigenGAN**
+
+Random samples (no truncation):
+
+<img src="./assets/eigengan/ffhq.png" width=100% />
+
+Traverse:
+
+<img src="./assets/eigengan/ffhq_traverse.png" width=100% />
 
 <br/>
 
@@ -498,7 +510,7 @@ For GAN, WGAN-GP, SNGAN, LSGAN:
 accelerate-launch scripts/train.py -c ./configs/xxx.yaml
 ```
 
-For WGAN (weight clipping), InfoGAN, VEEGAN, CGAN and ACGAN, use the scripts with corresponding name instead:
+For WGAN (weight clipping), InfoGAN, VEEGAN, CGAN, ACGAN and EigenGAN, use the scripts with corresponding name instead:
 
 ```shell
 accelerate-launch scripts/train_xxxgan.py -c ./configs/xxx.yaml
@@ -529,9 +541,19 @@ accelerate-launch scripts/sample_cond.py \
     --save_dir SAVE_DIR
 ```
 
+**EigenGAN**:
+
+```shell
+accelerate-launch scripts/sample_eigengan.py \
+    -c ./configs/xxx.yaml \
+    --weights /path/to/saved/ckpt/model.pt \
+    --n_samples N_SAMPLES \
+    --save_dir SAVE_DIR \
+    --mode MODE
+```
+
 
 
 ### Evaluate
 
 Sample images following the instructions above and use tools like [torch-fidelity](https://github.com/toshas/torch-fidelity) to calculate FID / IS.
-

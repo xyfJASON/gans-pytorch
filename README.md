@@ -20,7 +20,7 @@ Implement GANs with PyTorch.
 - [x] CGAN
 - [x] ACGAN
 
-**Unsupervised decomposition (MNIST)**:
+**Unsupervised decomposition (MNIST, FFHQ)**:
 
 - [x] InfoGAN
 - [x] EigenGAN
@@ -489,6 +489,8 @@ Note: Contrary to the claim in the paper, I found that LSGAN w/o batch normaliza
 </table>
 
 VEEGAN uses an extra network to reconstruct the latent codes from the generated data.
+
+<br/>
 
 
 

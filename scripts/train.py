@@ -175,6 +175,10 @@ def main():
         loss_D.backward()
         # optimize D
         optimizer_D.step()
+        # weight clipping
+        if conf.train.get('weight_clip', None) is not None:
+            for param in D.parameters():
+                param.data.clamp_(min=conf.train.weight_clip[0], max=conf.train.weight_clip[1])
         status.update(loss_D=loss_D.item(), lr_D=optimizer_D.param_groups[0]['lr'])
         return status
 

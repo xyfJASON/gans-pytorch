@@ -7,8 +7,9 @@ import torchvision.transforms as T
 def load_data(conf: DictConfig, split='train'):
     """Keys in conf: 'name', 'dataroot', 'img_size'."""
     assert conf.get('name') is not None
-    assert conf.get('dataroot') is not None
-    assert conf.get('img_size') is not None
+    if conf.name.lower() not in ['ring8', 'grid25']:
+        assert conf.get('dataroot') is not None
+        assert conf.get('img_size') is not None
 
     if conf.name.lower() == 'ring8':
         from datasets.toy import Ring8

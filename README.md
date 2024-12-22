@@ -1,6 +1,8 @@
-# GANs-Implementations
+# GANs-PyTorch
 
 Implement GANs with PyTorch.
+
+<br/>
 
 
 
@@ -43,15 +45,15 @@ Implement GANs with PyTorch.
 
 **Notes**:
 
-|     Model      | G. Arch.  |    D. Arch.    |                Loss                |                           Configs                            |
-| :------------: | :-------: | :------------: | :--------------------------------: | :----------------------------------------------------------: |
-|     DCGAN      | SimpleCNN |   SimpleCNN    |              Vanilla               |          [config file](./configs/gan_cifar10.yaml)           |
-| DCGAN + R1 reg | SimpleCNN |   SimpleCNN    |   Vanilla<br/>R1 regularization    | [config file](./configs/gan_cifar10.yaml)<br/><details><summary>Additional args</summary>`--train.loss_fn.params.lambda_r1_reg 10.0`</details> |
-|      WGAN      | SimpleCNN |   SimpleCNN    | Wasserstein<br/>(weight clipping)  |          [config file](./configs/wgan_cifar10.yaml)          |
-|    WGAN-GP     | SimpleCNN |   SimpleCNN    | Wasserstein<br/>(gradient penalty) |        [config file](./configs/wgan_gp_cifar10.yaml)         |
-|     SNGAN      | SimpleCNN | SimpleCNN (SN) |              Vanilla               |         [config file](./configs/sngan_cifar10.yaml)          |
-|     SNGAN      | SimpleCNN | SimpleCNN (SN) |               Hinge                |      [config file](./configs/sngan_hinge_cifar10.yaml)       |
-|     LSGAN      | SimpleCNN |   SimpleCNN    |            Least Sqaure            |         [config file](./configs/lsgan_cifar10.yaml)          |
+|     Model      | G. Arch.  |    D. Arch.    |                Loss                |                              Configs                               |
+|:--------------:|:---------:|:--------------:|:----------------------------------:|:------------------------------------------------------------------:|
+|     DCGAN      | SimpleCNN |   SimpleCNN    |              Vanilla               |             [config file](./configs/gan_cifar10.yaml)              |
+| DCGAN + R1 reg | SimpleCNN |   SimpleCNN    |   Vanilla<br/>R1 regularization    | [config file](./configs/gan_cifar10.yaml)<br/>`lambda_r1_reg=10.0` |
+|      WGAN      | SimpleCNN |   SimpleCNN    | Wasserstein<br/>(weight clipping)  |             [config file](./configs/wgan_cifar10.yaml)             |
+|    WGAN-GP     | SimpleCNN |   SimpleCNN    | Wasserstein<br/>(gradient penalty) |           [config file](./configs/wgan_gp_cifar10.yaml)            |
+|     SNGAN      | SimpleCNN | SimpleCNN (SN) |              Vanilla               |            [config file](./configs/sngan_cifar10.yaml)             |
+|     SNGAN      | SimpleCNN | SimpleCNN (SN) |               Hinge                |         [config file](./configs/sngan_hinge_cifar10.yaml)          |
+|     LSGAN      | SimpleCNN |   SimpleCNN    |            Least Sqaure            |            [config file](./configs/lsgan_cifar10.yaml)             |
 
 - SN stands for "Spectral Normalization".
 
@@ -64,7 +66,7 @@ Implement GANs with PyTorch.
 **Quantitative results**:
 
 |        Model         |  FID ↓  | Inception Score ↑ |
-| :------------------: | :-----: | :---------------: |
+|:--------------------:|:-------:|:-----------------:|
 |        DCGAN         | 24.7311 |  7.0339 ± 0.0861  |
 |    DCGAN + R1 reg    | 24.1535 |  7.0188 ± 0.1089  |
 |         WGAN         | 49.9169 |  5.6852 ± 0.0649  |
@@ -113,11 +115,11 @@ Implement GANs with PyTorch.
 
 **Notes**:
 
-|   Model    | G. Arch.  | D. Arch.  | G. cond. | D. cond. |  Loss   |                 Configs & Args                 |
-| :--------: | :-------: | :-------: | :------: | :------: | :-----: | :--------------------------------------------: |
-|    CGAN    | SimpleCNN | SimpleCNN |  concat  |  concat  | Vanilla |   [config file](./configs/cgan_cifar10.yaml)   |
-| CGAN (cBN) | SimpleCNN | SimpleCNN |   cBN    |  concat  | Vanilla | [config file](./configs/cgan_cbn_cifar10.yaml) |
-|   ACGAN    | SimpleCNN | SimpleCNN |   cBN    |    AC    | Vanilla |  [config file](./configs/acgan_cifar10.yaml)   |
+|    Model    |  G. Arch.  |  D. Arch.  | G. cond.  | D. cond.  |   Loss   |                 Configs & Args                  |
+|:-----------:|:----------:|:----------:|:---------:|:---------:|:--------:|:-----------------------------------------------:|
+|    CGAN     | SimpleCNN  | SimpleCNN  |  concat   |  concat   | Vanilla  |   [config file](./configs/cgan_cifar10.yaml)    |
+| CGAN (cBN)  | SimpleCNN  | SimpleCNN  |    cBN    |  concat   | Vanilla  | [config file](./configs/cgan_cbn_cifar10.yaml)  |
+|    ACGAN    | SimpleCNN  | SimpleCNN  |    cBN    |    AC     | Vanilla  |   [config file](./configs/acgan_cifar10.yaml)   |
 
 
 - cBN stands for "conditional Batch Normalization"; SN stands for "Spectral Normalization"; AC stands for "Auxiliary Classifier"; PD stands for "Projection Discriminator".
@@ -126,15 +128,14 @@ Implement GANs with PyTorch.
 
 **Quantitative results**:
 
-|   Model    |  FID ↓  |                         Intra FID ↓                          | Inception Score ↑ |
-| :--------: | :-----: | :----------------------------------------------------------: | :---------------: |
-|    CGAN    | 25.4999 | 47.7334<br/>            <details><summary>Details</summary><p>Class 0: 53.4163</p><p>Class 1: 44.3311</p><p>Class 2: 53.1971</p><p>Class 3: 52.2223</p><p>Class 4: 36.9577</p><p>Class 5: 65.0020</p><p>Class 6: 37.9598</p><p>Class 7: 48.3610</p><p>Class 8: 41.8075</p><p>Class 9: 44.0796</p></details> |  7.5597 ± 0.0909  |
-| CGAN (cBN) | 25.3466 | 47.4136<br/>                <details><summary>Details</summary><p>Class 0: 51.5959</p><p>Class 1: 46.6855</p><p>Class 2: 49.9857</p><p>Class 3: 53.6737</p><p>Class 4: 35.1658</p><p>Class 5: 65.7719</p><p>Class 6: 38.0958</p><p>Class 7: 44.7279</p><p>Class 8: 43.3078</p><p>Class 9: 45.1265</p></details> |  7.7541 ± 0.0944  |
-|   ACGAN    | 19.9154 | 49.9892<br/><details><summary>Details</summary><p>Class 0: 47.3203</p><p>Class 1: 38.6481</p><p>Class 2: 62.5885</p><p>Class 3: 66.2386</p><p>Class 4: 64.5535</p><p>Class 5: 60.7876</p><p>Class 6: 58.9524</p><p>Class 7: 36.8940</p><p>Class 8: 28.5964</p><p>Class 9: 35.3120</p></details> |  7.9903 ± 0.1038  |
+|   Model    |  FID ↓  | Inception Score ↑ |
+|:----------:|:-------:|:-----------------:|
+|    CGAN    | 25.4999 |  7.5597 ± 0.0909  |
+| CGAN (cBN) | 25.3466 |  7.7541 ± 0.0944  |
+|   ACGAN    | 19.9154 |  7.9903 ± 0.1038  |
 
 
 - The FID is calculated between 50k generated samples (5k for each class) and the CIFAR-10 training split (50k images).
-- The intra FID is calculated between 5k generated samples and CIFAR-10 training split within each class.
 - The Inception Score is calculated on 50k generated samples.
 
 
@@ -504,20 +505,29 @@ VEEGAN uses an extra network to reconstruct the latent codes from the generated 
 
 ```shell
 GPUS=4
+
 # train GAN
 torchrun --nproc_per_node ${GPUS} scripts/train.py -c ./configs/gan_xxx.yaml
+# train GAN with R1 regularization
+torchrun --nproc_per_node ${GPUS} scripts/train.py -c ./configs/gan_xxx.yaml --train.loss_fn.params.lambda_r1_reg 10.0
+# train WGAN (weight clipping)
+torchrun --nproc_per_node ${GPUS} scripts/train.py -c ./configs/wgan_xxx.yaml
 # train WGAN-GP
 torchrun --nproc_per_node ${GPUS} scripts/train.py -c ./configs/wgan_gp_xxx.yaml
 # train SNGAN
 torchrun --nproc_per_node ${GPUS} scripts/train.py -c ./configs/sngan_xxx.yaml
 # train LSGAN
 torchrun --nproc_per_node ${GPUS} scripts/train.py -c ./configs/lsgan_xxx.yaml
-```
-
-For WGAN (weight clipping), InfoGAN, VEEGAN, CGAN, ACGAN and EigenGAN, use the scripts with corresponding name instead:
-
-```shell
-accelerate-launch scripts/train_xxxgan.py -c ./configs/xxx.yaml
+# train VEEGAN
+torchrun --nproc_per_node ${GPUS} scripts/train_veegan.py -c ./configs/veegan_xxx.yaml
+# train CGAN
+torchrun --nproc_per_node ${GPUS} scripts/train_cgan.py -c ./configs/cgan_xxx.yaml
+# train ACGAN
+torchrun --nproc_per_node ${GPUS} scripts/train_acgan.py -c ./configs/acgan_xxx.yaml
+# train InfoGAN
+torchrun --nproc_per_node ${GPUS} scripts/train_infogan.py -c ./configs/infogan_xxx.yaml
+# train EigenGAN
+torchrun --nproc_per_node ${GPUS} scripts/train_eigengan.py -c ./configs/eigengan_xxx.yaml
 ```
 
 

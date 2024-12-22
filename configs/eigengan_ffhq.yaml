@@ -39,7 +39,6 @@ train:
   sample_freq: 1000
   n_samples: 25
 
-  d_iters: 1
   ortho_reg: 1.0
   ema_decay: 0.999
 

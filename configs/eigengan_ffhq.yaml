@@ -34,7 +34,6 @@ train:
   n_steps: 500000
   batch_size: 64
 
-  resume: ~
   print_freq: 100
   save_freq: 10000
   sample_freq: 1000

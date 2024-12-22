@@ -2,7 +2,6 @@ import os
 from PIL import Image
 
 from torch.utils.data import Dataset
-import torchvision.transforms as T
 
 
 def extract_images(root):
@@ -57,23 +56,3 @@ class FFHQ(Dataset):
         if self.transform is not None:
             X = self.transform(X)
         return X
-
-
-def get_default_transforms(img_size: int, split: str):
-    flip_p = 0.5 if split == 'train' else 0.0
-    transforms = T.Compose([
-        T.Resize((img_size, img_size)),
-        T.RandomHorizontalFlip(flip_p),
-        T.ToTensor(),
-        T.Normalize([0.5] * 3, [0.5] * 3),
-    ])
-    return transforms
-
-
-if __name__ == '__main__':
-    dataset = FFHQ(root='/data/FFHQ/', split='train')
-    print(len(dataset))
-    dataset = FFHQ(root='/data/FFHQ/', split='test')
-    print(len(dataset))
-    dataset = FFHQ(root='/data/FFHQ/', split='all')
-    print(len(dataset))

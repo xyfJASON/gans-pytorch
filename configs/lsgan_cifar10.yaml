@@ -2,7 +2,7 @@ seed: 5678
 
 data:
   name: CIFAR-10
-  dataroot: /data/CIFAR-10/
+  dataroot: ~/data/CIFAR-10/
   img_size: 32
   img_channels: 3
 
@@ -33,7 +33,7 @@ train:
   n_steps: 40000
   batch_size: 512
   d_iters: 5
-  resume: ~
+
   print_freq: 100
   save_freq: 10000
   sample_freq: 1000

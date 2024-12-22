@@ -1,93 +1,77 @@
-import tqdm
-from torch.utils.data import Subset
-from utils.logger import get_logger
+from omegaconf import DictConfig
+
+import torchvision.datasets as dset
+import torchvision.transforms as T
 
 
-def check_split(name, split, strict_valid_test):
-    available_split = {
-        'mnist': ['train', 'test'],
-        'cifar10': ['train', 'test'],
-        'cifar-10': ['train', 'test'],
-        'celebahq': ['train', 'valid', 'test', 'all'],
-        'celeba-hq': ['train', 'valid', 'test', 'all'],
-        'ffhq': ['train', 'test'],
-        'imagenet': ['train', 'valid', 'test'],
-    }
-    assert split in ['train', 'valid', 'test', 'all']
-    if split in ['train', 'all'] or strict_valid_test:
-        assert split in available_split[name.lower()], f"Dataset {name} doesn't have split: {split}"
-    elif split not in available_split[name.lower()]:
-        replace_split = 'test' if split == 'valid' else 'valid'
-        assert replace_split in available_split[name.lower()], f"Dataset {name} doesn't have split: {split}"
-        logger = get_logger()
-        logger.warning(f'Replace split `{split}` with split `{replace_split}`')
-        split = replace_split
-    return split
+def load_data(conf: DictConfig, split='train'):
+    """Keys in conf: 'name', 'dataroot', 'img_size'."""
+    assert conf.get('name') is not None
+    assert conf.get('dataroot') is not None
+    assert conf.get('img_size') is not None
 
-
-def get_dataset(name, dataroot, img_size, split, transforms=None, subset_ids=None, strict_valid_test=False):
-    """
-    Args:
-        name: Name of dataset.
-        dataroot: Path to dataset.
-        img_size: Size of images.
-        split: 'train', 'valid', 'test', 'all'.
-        transforms: If None, will use default transforms.
-        subset_ids: Select a subset of the full dataset.
-        strict_valid_test: Replace validation split with test split (or vice versa)
-                           if the dataset doesn't have a validation / test split.
-    """
-    if name.lower() not in ['ring8', 'grid25']:
-        split = check_split(name, split, strict_valid_test)
-
-    if name.lower() == 'ring8':
+    if conf.name.lower() == 'ring8':
         from datasets.toy import Ring8
         dataset = Ring8()
 
-    elif name.lower() == 'grid25':
+    elif conf.name.lower() == 'grid25':
         from datasets.toy import Grid25
         dataset = Grid25()
 
-    elif name.lower() == 'mnist':
-        from datasets.mnist import MNIST, get_default_transforms
-        if transforms is None:
-            transforms = get_default_transforms(img_size)
-        dataset = MNIST(root=dataroot, train=(split == 'train'), transform=transforms)
+    elif conf.name.lower() == 'mnist':
+        transforms = T.Compose([
+            T.Resize((conf.img_size, conf.img_size)),
+            T.ToTensor(),
+            T.Normalize([0.5], [0.5]),
+        ])
+        dataset = dset.MNIST(root=conf.dataroot, train=(split == 'train'), transform=transforms)
 
-    elif name.lower() in ['cifar10', 'cifar-10']:
-        from datasets.cifar10 import CIFAR10, get_default_transforms
-        if transforms is None:
-            transforms = get_default_transforms(img_size, split)
-        dataset = CIFAR10(root=dataroot, train=(split == 'train'), transform=transforms)
+    elif conf.name.lower() in ['cifar10', 'cifar-10']:
+        flip_p = 0.5 if split == 'train' else 0.0
+        transforms = T.Compose([
+            T.Resize((conf.img_size, conf.img_size)),
+            T.RandomHorizontalFlip(flip_p),
+            T.ToTensor(),
+            T.Normalize([0.5] * 3, [0.5] * 3),
+        ])
+        dataset = dset.CIFAR10(root=conf.dataroot, train=(split == 'train'), transform=transforms)
 
-    elif name.lower() in ['celeba-hq', 'celebahq']:
-        from datasets.celeba_hq import CelebA_HQ, get_default_transforms
-        if transforms is None:
-            transforms = get_default_transforms(img_size, split)
-        dataset = CelebA_HQ(root=dataroot, split=split, transform=transforms)
+    elif conf.name.lower() in ['celeba-hq', 'celebahq']:
+        from datasets.celeba_hq import CelebA_HQ
+        flip_p = 0.5 if split == 'train' else 0.0
+        transforms = T.Compose([
+            T.Resize((conf.img_size, conf.img_size)),
+            T.RandomHorizontalFlip(flip_p),
+            T.ToTensor(),
+            T.Normalize([0.5] * 3, [0.5] * 3),
+        ])
+        dataset = CelebA_HQ(root=conf.dataroot, split=split, transform=transforms)
 
-    elif name.lower() == 'ffhq':
-        from datasets.ffhq import FFHQ, get_default_transforms
-        if transforms is None:
-            transforms = get_default_transforms(img_size, split)
-        dataset = FFHQ(root=dataroot, split=split, transform=transforms)
+    elif conf.name.lower() == 'ffhq':
+        from datasets.ffhq import FFHQ
+        flip_p = 0.5 if split == 'train' else 0.0
+        transforms = T.Compose([
+            T.Resize((conf.img_size, conf.img_size)),
+            T.RandomHorizontalFlip(flip_p),
+            T.ToTensor(),
+            T.Normalize([0.5] * 3, [0.5] * 3),
+        ])
+        dataset = FFHQ(root=conf.dataroot, split=split, transform=transforms)
 
-    elif name.lower() == 'imagenet':
-        from datasets.imagenet import ImageNet, get_default_transforms
-        if transforms is None:
-            transforms = get_default_transforms(img_size, split)
-        dataset = ImageNet(root=dataroot, split=split, transform=transforms)
+    elif conf.name.lower() == 'imagenet':
+        from datasets.imagenet import ImageNet
+        crop = T.RandomCrop if split == 'train' else T.CenterCrop
+        flip_p = 0.5 if split == 'train' else 0.0
+        transforms = T.Compose([
+            T.Resize(conf.img_size),
+            crop((conf.img_size, conf.img_size)),
+            T.RandomHorizontalFlip(flip_p),
+            T.ToTensor(),
+            T.Normalize([0.5] * 3, [0.5] * 3),
+        ])
+        dataset = ImageNet(root=conf.dataroot, split=split, transform=transforms)
 
     else:
-        raise ValueError(f"Dataset {name} is not supported.")
+        raise ValueError(f'Unsupported dataset: {conf.name}')
 
-    if subset_ids is not None and len(subset_ids) < len(dataset):
-        dataset = Subset(dataset, subset_ids)
     return dataset
-
-
-def get_data_generator(dataloader, is_main_process=True, with_tqdm=True):
-    disable = not (with_tqdm and is_main_process)
-    while True:
-        for batch in tqdm.tqdm(dataloader, disable=disable, desc='Epoch', leave=False):
-            yield batch

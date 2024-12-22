@@ -196,7 +196,9 @@ Mode collapse is a notorious problem in GANs, where the model can only generate 
 - **Ring8**: eight gaussian distributions lying on a ring.
 - **MNIST**: handwritten digit dataset.
 
-For simplicity, the model architecture in all experiments is SimpleMLP, namely a stack of `nn.Linear` layers, thus the quality of generated MNIST image may not be so good. However, this section aims to demonstrate the mode collapse problem rather than to achieve the best image quality.
+For simplicity, the model architecture in all experiments is SimpleMLP, namely a stack of `nn.Linear` layers,
+thus the quality of generated MNIST images is not good.
+However, this section aims to demonstrate the mode collapse problem rather than to achieve the best image quality.
 
 <br/>
 
@@ -498,18 +500,18 @@ VEEGAN uses an extra network to reconstruct the latent codes from the generated 
 
 
 
-### Pretrained weights
-
-The checkpoints and training logs are stored in [xyfJASON/GANs-Implementations](https://huggingface.co/xyfJASON/GANs-Implementations/tree/main) on huggingface.
-
-
-
 ### Train
 
-For GAN, WGAN-GP, SNGAN, LSGAN:
-
 ```shell
-accelerate-launch scripts/train.py -c ./configs/xxx.yaml
+GPUS=4
+# train GAN
+torchrun --nproc_per_node ${GPUS} scripts/train.py -c ./configs/gan_xxx.yaml
+# train WGAN-GP
+torchrun --nproc_per_node ${GPUS} scripts/train.py -c ./configs/wgan_gp_xxx.yaml
+# train SNGAN
+torchrun --nproc_per_node ${GPUS} scripts/train.py -c ./configs/sngan_xxx.yaml
+# train LSGAN
+torchrun --nproc_per_node ${GPUS} scripts/train.py -c ./configs/lsgan_xxx.yaml
 ```
 
 For WGAN (weight clipping), InfoGAN, VEEGAN, CGAN, ACGAN and EigenGAN, use the scripts with corresponding name instead:
